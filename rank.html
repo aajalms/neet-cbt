@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>NEET CBT Result</title>
+<style>
+body{font-family:Arial;background:#f4f4f4;padding:20px}
+.card{background:white;padding:20px;border-radius:6px}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+td,th{border:1px solid #ccc;padding:8px}
+th{background:#003366;color:white}
+</style>
+</head>
+<body>
+
+<div class="card">
+<h2>Result</h2>
+
+<p><b>Name:</b> <span id="name"></span></p>
+<p><b>Roll No:</b> <span id="roll"></span></p>
+<p><b>Score:</b> <span id="score"></span></p>
+<p><b>Violations:</b> <span id="vcount"></span></p>
+
+<h3>Violation Log</h3>
+<table>
+<tr><th>#</th><th>Reason</th><th>Time</th></tr>
+<tbody id="vlog"></tbody>
+</table>
+</div>
+
+<script>
+name.innerText = localStorage.getItem("studentName");
+roll.innerText = localStorage.getItem("rollNo");
+score.innerText = localStorage.getItem("score");
+vcount.innerText = localStorage.getItem("violations");
+
+let logs = JSON.parse(localStorage.getItem("violationLog")) || [];
+logs.forEach((v,i)=>{
+  vlog.innerHTML += `<tr>
+    <td>${i+1}</td>
+    <td>${v.reason}</td>
+    <td>${v.time}</td>
+  </tr>`;
+});
+</script>
+
+</body>
+</html>

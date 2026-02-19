@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Student Answer Report</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #eef2f7;
+  margin: 0;
+  padding: 20px;
+}
+
+.header {
+  background: #003366;
+  color: white;
+  padding: 15px;
+  font-size: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.back-btn {
+  background: white;
+  color: #003366;
+  border: none;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.info {
+  margin: 15px 0;
+  font-size: 15px;
+}
+
+.qbox {
+  background: white;
+  padding: 15px;
+  margin: 15px 0;
+  border-radius: 6px;
+}
+
+.correct { color: green; font-weight: bold; }
+.wrong { color: red; font-weight: bold; }
+.skipped { color: gray; font-weight: bold; }
+
+.error {
+  background: #ffecec;
+  color: #b30000;
+  padding: 15px;
+  border-radius: 6px;
+  margin-top: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <div>Student Answer Report</div>
+  <button class="back-btn" onclick="goBack()">⬅ Back to Rank List</button>
+</div>
+
+<div id="content"></div>
+
+<script>
+/* READ DATA */
+const index = parseInt(localStorage.getItem("viewIndex"), 10);
+const results = JSON.parse(localStorage.getItem("results")) || [];
+const container = document.getElementById("content");
+
+/* VALIDATION */
+if (
+  isNaN(index) ||
+  !results[index] ||
+  !Array.isArray(results[index].questions) ||
+  !Array.isArray(results[index].answers)
+) {
+  container.innerHTML = `
+    <div class="error">
+      <b>Error:</b> Student report not found.<br><br>
+      Possible reasons:
+      <ul>
+        <li>Rank list was refreshed</li>
+        <li>Result data was cleared</li>
+        <li>Invalid index passed</li>
+      </ul>
+    </div>
+  `;
+  throw new Error("Invalid report data");
+}
+
+const data = results[index];
+
+/* STUDENT INFO */
+container.innerHTML = `
+  <div class="info">
+    <b>Roll:</b> ${data.roll} |
+    <b>Name:</b> ${data.name} |
+    <b>Score:</b> ${data.score}
+  </div>
+`;
+
+/* QUESTIONS */
+data.questions.forEach((q, i) => {
+  const studentAns = data.answers[i];
+  const correctAns = q.correct;
+
+  let statusClass = "skipped";
+  let statusText = "Not Answered";
+
+  if (studentAns === correctAns) {
+    statusClass = "correct";
+    statusText = "Correct";
+  } else if (studentAns !== null && studentAns !== undefined) {
+    statusClass = "wrong";
+    statusText = "Wrong";
+  }
+
+  let optionsHTML = "";
+
+  q.options.forEach((op, idx) => {
+    let mark = "";
+    if (idx === correctAns) mark = " ✅";
+    if (idx === studentAns && idx !== correctAns) mark = " ❌";
+    optionsHTML += ⁠ ${idx + 1}. ${op}${mark}<br> ⁠;
+  });
+
+  container.innerHTML += `
+    <div class="qbox">
+      <b>Q${i + 1}. ${q.q}</b><br><br>
+      ${optionsHTML}
+      <p class="${statusClass}">
+        Status: ${statusText}
+      </p>
+    </div>
+  `;
+});
+
+/* BACK */
+function goBack() {
+  window.location.href = "rank.html";
+}
+</script>
+
+</body>
+</html>

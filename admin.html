@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Panel – NEET CBT</title>
+
+<style>
+body{
+  font-family:Arial;
+  margin:0;
+  background:#f4f6f8;
+}
+
+header{
+  background:#1e3c72;
+  color:white;
+  padding:15px;
+  font-size:18px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  background:white;
+}
+
+th,td{
+  padding:10px;
+  border:1px solid #ccc;
+  text-align:center;
+  font-size:14px;
+}
+
+th{
+  background:#2a5298;
+  color:white;
+}
+
+tr:hover{
+  background:#f1f1f1;
+  cursor:pointer;
+}
+
+.violation{
+  color:red;
+  font-weight:bold;
+}
+
+#details{
+  padding:15px;
+  background:white;
+  margin-top:10px;
+  display:none;
+}
+
+img{
+  max-width:200px;
+  margin:5px;
+  border:2px solid #ccc;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  🛡️ NEET CBT – Admin Live Monitoring
+</header>
+
+<table>
+<thead>
+<tr>
+  <th>#</th>
+  <th>Name</th>
+  <th>Roll No</th>
+  <th>Score</th>
+  <th>Correct</th>
+  <th>Violations</th>
+  <th>Submitted At</th>
+</tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
+
+<div id="details"></div>
+
+<!-- ================= FIREBASE ================= -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCuCTqLfuGPbhP6yNuMuIXsp6TqbLoFytg",
+  authDomain: "neet-cbt.firebaseapp.com",
+  projectId: "neet-cbt",
+  storageBucket: "neet-cbt.appspot.com",
+  messagingSenderId: "177192471849",
+  appId: "1:177192471849:web:1a29ef80f2b56cc1cdfb38"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const tbody = document.getElementById("tbody");
+const details = document.getElementById("details");
+
+/* 🔴 LIVE LISTENER */
+const q = query(
+  collection(db,"results"),
+  orderBy("submittedAt","desc")
+);
+
+onSnapshot(q, snap => {
+  tbody.innerHTML = "";
+  let i = 1;
+
+  snap.forEach(doc => {
+    const d = doc.data();
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td>${i++}</td>
+      <td>${d.name}</td>
+      <td>${d.rollNo}</td>
+      <td><b>${d.score}</b></td>
+      <td>${d.correct}</td>
+      <td class="violation">${d.violations}</td>
+      <td>${new Date(d.submittedAt.seconds*1000).toLocaleString()}</td>
+    `;
+
+    tr.onclick = () => showDetails(d);
+    tbody.appendChild(tr);
+  });
+});
+
+/* 🔍 DETAILS VIEW */
+function showDetails(d){
+  details.style.display="block";
+  details.innerHTML = `
+    <h3>📄 Student Details</h3>
+    <p><b>Name:</b> ${d.name}</p>
+    <p><b>Roll No:</b> ${d.rollNo}</p>
+    <p><b>Score:</b> ${d.score}</p>
+    <p><b>Correct:</b> ${d.correct}</p>
+    <p><b>Total Violations:</b> ${d.violations}</p>
+
+    <h4>🚫 Violation Log</h4>
+    <ul>
+      ${d.violationLog?.map(v=>⁠ <li>${v.time} – ${v.reason}</li> ⁠).join("") || "None"}
+    </ul>
+
+    <h4>📸 Screenshots</h4>
+    ${d.screenshots?.map(url=>⁠ <img src="${url}"> ⁠).join("") || "No screenshots"}
+  `;
+}
+</script>
+
+</body>
+</html>
