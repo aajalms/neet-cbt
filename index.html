@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NEET CBT</title>
+
+<style>
+body {
+  font-family: Arial;
+  margin:0;
+  background:#f4f4f4;
+  overscroll-behavior: none; /* Disable pull-to-refresh */
+}
+
+.header {
+  background:#003366;
+  color:white;
+  padding:10px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:14px;
+}
+
+.container { display:flex; }
+
+.main { width:70%; padding:20px; background:white; }
+.palette { width:30%; padding:20px; border-left:1px solid #ccc; background:#fafafa; }
+
+.palette button {
+  width:40px;
+  height:40px;
+  margin:4px;
+  border:none;
+  color:white;
+  font-weight:bold;
+  border-radius:4px;
+}
+
+.red { background:#e74c3c; }
+.green { background:#27ae60; }
+.yellow { background:#f1c40f; color:black; }
+.current { outline:3px solid black; }
+
+.controls button {
+  margin:5px;
+  padding:8px 12px;
+  font-weight:bold;
+}
+
+.fullscreen-btn{
+  background:#f1c40f;
+  border:none;
+  padding:6px 10px;
+  font-weight:bold;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <div>NEET CBT</div>
+
+  <button class="fullscreen-btn" onclick="enterFullscreen()">
+    Enter Fullscreen
+  </button>
+
+  <div>Time: <span id="timer">180:00</span></div>
+  <div>Violations: <span id="vCount">0</span></div>
+</div>
+
+<div class="container">
+
+<div class="main">
+  <h3 id="qno"></h3>
+  <p id="qtext"></p>
+  <div id="options"></div>
+
+  <div class="controls">
+    <button onclick="prev()">Previous</button>
+    <button onclick="next()">Next</button>
+    <button onclick="clearResponse()">Clear Response</button>
+    <button onclick="markForReview()">Mark for Review</button>
+    <button onclick="submitExam()">Submit Exam</button>
+  </div>
+</div>
+
+<div class="palette">
+  <h4>Question Palette</h4>
+  <div id="palette"></div>
+</div>
+
+</div>
+
+<!-- QUESTIONS -->
+<script src="questions.js"></script>
+
+<!-- ================= FIREBASE ================= -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCuCTqLfuGPbhP6yNuMuIXsp6TqbLoFytg",
+  authDomain: "neet-cbt.firebaseapp.com",
+  projectId: "neet-cbt",
+  storageBucket: "neet-cbt.appspot.com",
+  messagingSenderId: "177192471849",
+  appId: "1:177192471849:web:1a29ef80f2b56cc1cdfb38"
+};
+
+const app = initializeApp(firebaseConfig);
+
+window.db = getFirestore(app);
+window.storage = getStorage(app);
+window.addDoc = addDoc;
+window.collection = collection;
+window.ref = ref;
+window.uploadBytes = uploadBytes;
+window.getDownloadURL = getDownloadURL;
+</script>
+
+<script>
+/* ================= STUDENT DATA ================= */
+sessionStorage.setItem("rollNo","101");
+sessionStorage.setItem("studentName","Demo Student");
+
+/* ================= PROCTORING ================= */
+const MAX_VIOLATIONS = 3;
+let violations = 0;
+let violationLog = [];
+let screenshots = [];
+let lock=false;
+
+/* 📸 SCREENSHOT */
+async function takeScreenshot(reason){
+  const canvas=document.createElement("canvas");
+  canvas.width=window.innerWidth;
+  canvas.height=window.innerHeight;
+  const ctx=canvas.getContext("2d");
+
+  ctx.fillStyle="#000";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle="#fff";
+  ctx.font="20px Arial";
+  ctx.fillText("Violation: "+reason,40,50);
+  ctx.fillText(new Date().toLocaleString(),40,80);
+
+  const blob=await new Promise(r=>canvas.toBlob(r,"image/png"));
+  const fileRef=ref(
+    storage,
+    ⁠ screenshots/${sessionStorage.getItem("rollNo")}_${Date.now()}.png ⁠
+  );
+
+  await uploadBytes(fileRef,blob);
+  screenshots.push(await getDownloadURL(fileRef));
+}
+
+async function recordViolation(reason){
+  if(lock) return;
+  lock=true;
+
+  violations++;
+  document.getElementById("vCount").innerText=violations;
+
+  violationLog.push({reason,time:new Date().toLocaleTimeString()});
+  await takeScreenshot(reason);
+
+  alert("⚠️ "+reason+"\nViolation "+violations+"/"+MAX_VIOLATIONS);
+
+  setTimeout(()=>lock=false,1500);
+
+  if(violations>=MAX_VIOLATIONS){
+    alert("❌ Auto submitted");
+    submitExam(true);
+  }
+}
+
+/* TAB SWITCH */
+document.addEventListener("visibilitychange",()=>{
+  if(document.hidden) recordViolation("Tab switch detected");
+});
+
+/* RIGHT CLICK */
+document.addEventListener("contextmenu",e=>{
+  e.preventDefault();
+  recordViolation("Right click blocked");
+});
+
+/* DEV TOOLS / KEYS */
+document.addEventListener("keydown",e=>{
+  if(e.ctrlKey||e.metaKey||e.altKey||e.key==="F12"){
+    e.preventDefault();
+    recordViolation("Restricted key");
+  }
+});
+
+/* ================= BACK & REFRESH BLOCK ================= */
+history.pushState(null,null,location.href);
+window.onpopstate=function(){
+  history.go(1);
+  recordViolation("Back button pressed");
+};
+
+document.addEventListener("keydown",e=>{
+  if(
+    e.key==="F5" ||
+    (e.ctrlKey && e.key.toLowerCase()==="r")
+  ){
+    e.preventDefault();
+    recordViolation("Page refresh attempted");
+  }
+});
+
+/* ================= FULLSCREEN ================= */
+function enterFullscreen(){
+  const el=document.documentElement;
+  if(el.requestFullscreen) el.requestFullscreen();
+  else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  else if(el.msRequestFullscreen) el.msRequestFullscreen();
+}
+
+document.addEventListener("fullscreenchange",()=>{
+  if(!document.fullscreenElement){
+    recordViolation("Exited fullscreen mode");
+  }
+});
+
+/* ================= CBT ================= */
+let current=0;
+let answers=new Array(questions.length).fill(null);
+let reviewSet=new Set();
+
+function saveAnswer(){
+  const sel=document.querySelector('input[name="opt"]:checked');
+  if(sel) answers[current]=Number(sel.value);
+}
+
+function loadQuestion(){
+  qno.innerText="Question "+(current+1);
+  qtext.innerText=questions[current].q;
+  options.innerHTML=questions[current].options.map((o,i)=>`
+    <label>
+      <input type="radio" name="opt" value="${i}"
+      ${answers[current]===i?"checked":""}> ${o}
+    </label><br>
+  `).join("");
+  updatePalette();
+}
+
+function createPalette(){
+  palette.innerHTML="";
+  questions.forEach((_,i)=>{
+    const b=document.createElement("button");
+    b.innerText=i+1;
+    b.onclick=()=>{saveAnswer();current=i;loadQuestion();}
+    palette.appendChild(b);
+  });
+}
+
+function updatePalette(){
+  document.querySelectorAll(".palette button").forEach((b,i)=>{
+    b.className="";
+    if(answers[i]!==null) b.classList.add("green");
+    else b.classList.add("red");
+    if(i===current) b.classList.add("current");
+  });
+}
+
+function next(){saveAnswer();if(current<questions.length-1){current++;loadQuestion();}}
+function prev(){saveAnswer();if(current>0){current--;loadQuestion();}}
+function clearResponse(){answers[current]=null;loadQuestion();}
+function markForReview(){reviewSet.add(current);updatePalette();}
+
+/* ================= SUBMIT ================= */
+async function submitExam(auto=false){
+  saveAnswer();
+  if(!auto && !confirm("Submit exam?")) return;
+
+  let score=0,correct=0;
+  answers.forEach((a,i)=>{
+    if(a===questions[i].correct){score+=4;correct++}
+    else if(a!==null) score-=1;
+  });
+
+  await addDoc(collection(db,"results"),{
+    rollNo:sessionStorage.getItem("rollNo"),
+    name:sessionStorage.getItem("studentName"),
+    score,correct,
+    violations,
+    violationLog,
+    screenshots,
+    submittedAt:new Date()
+  });
+
+  sessionStorage.setItem("examSubmitted","yes");
+  location.href="result.html";
+}
+
+/* ================= TIMER ================= */
+let timeLeft=180*60;
+setInterval(()=>{
+  let m=Math.floor(timeLeft/60),s=timeLeft%60;
+  timer.innerText=m+":"+(s<10?"0":"")+s;
+  timeLeft--;
+  if(timeLeft<0) submitExam(true);
+},1000);
+
+/* INIT */
+createPalette();
+loadQuestion();
+</script>
+
+</body>
+</html>
