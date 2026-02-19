@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Instructions</title>
+<style>
+body{font-family:Arial;background:#f4f4f4;padding:30px;}
+.box{
+  max-width:800px;
+  margin:auto;
+  background:#fff;
+  padding:30px;
+}
+button{
+  padding:12px 25px;
+  background:#28a745;
+  color:#fff;
+  border:none;
+  font-size:16px;
+  cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<div class="box">
+<h2>Instructions</h2>
+<ul>
+<li>Duration: 210 Minutes</li>
+<li>+4 Correct, −1 Wrong</li>
+<li>No tab switching</li>
+<li>Fullscreen mandatory</li>
+<li>3 violations → auto submit</li>
+</ul>
+
+<button onclick="startExam()">I Agree & Start Exam</button>
+</div>
+
+<script>
+if(!sessionStorage.getItem("roll")){
+  location.href="login.html";
+}
+
+function startExam(){
+  document.documentElement.requestFullscreen();
+  location.href="index.html";
+}
+</script>
+
+</body>
+</html>
