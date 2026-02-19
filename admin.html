@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NEET PG – Admin Panel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #eef2f6;
+  margin: 0;
+  padding: 20px;
+}
+
+h2 {
+  text-align: center;
+  color: #003366;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+th, td {
+  padding: 10px;
+  border: 1px solid #ccc;
+  text-align: center;
+}
+
+th {
+  background: #003366;
+  color: white;
+}
+
+.red { color: red; font-weight: bold; }
+.green { color: green; font-weight: bold; }
+</style>
+</head>
+
+<body>
+
+<h2>👨‍💼 LIVE ADMIN PANEL – NEET PG CBT</h2>
+
+<table>
+<thead>
+<tr>
+  <th>#</th>
+  <th>Roll No</th>
+  <th>Score</th>
+  <th>Correct</th>
+  <th>Wrong</th>
+  <th>Time (min)</th>
+  <th>Violations</th>
+  <th>Status</th>
+</tr>
+</thead>
+<tbody id="rows"></tbody>
+</table>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+/* 🔥 YOUR FIREBASE CONFIG */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+const table = document.getElementById("rows");
+
+/* 🔐 ADMIN AUTH CHECK */
+onAuthStateChanged(auth, user => {
+  if (!user) {
+    alert("Admin login required");
+    location.href = "login.html";
+    return;
+  }
+
+  /* 🔴 LIVE RESULTS STREAM */
+  onSnapshot(collection(db, "results"), snapshot => {
+    table.innerHTML = "";
+    let i = 1;
+
+    snapshot.forEach(doc => {
+      const d = doc.data();
+      const tr = document.createElement("tr");
+
+      tr.innerHTML = `
+        <td>${i++}</td>
+        <td>${d.rollNo}</td>
+        <td class="green">${d.score}</td>
+        <td>${d.correct}</td>
+        <td>${d.wrong}</td>
+        <td>${Math.floor(d.timeUsed / 60)}</td>
+        <td class="red">${d.violations}</td>
+        <td>${d.status}</td>
+      `;
+      table.appendChild(tr);
+    });
+  });
+});
+</script>
+
+</body>
+</html>
