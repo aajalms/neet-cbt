@@ -1,184 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>NEET CBT – Result</title>
-
-<style>
-body{
-  font-family: Arial, sans-serif;
-  background:#e9eef3;
-  margin:0;
-  padding:30px;
-}
-
-.container{
-  max-width:900px;
-  margin:auto;
-  background:white;
-  padding:30px;
-  border-radius:8px;
-}
-
-h2{
-  text-align:center;
-  color:#003366;
-}
-
-.summary{
-  display:flex;
-  justify-content:space-between;
-  background:#f4f6f8;
-  padding:15px;
-  margin-top:20px;
-  border-radius:6px;
-}
-
-.summary div{
-  font-size:16px;
-  font-weight:bold;
-}
-
-.section{
-  margin-top:30px;
-}
-
-.section h3{
-  background:#003366;
-  color:white;
-  padding:10px;
-  border-radius:4px;
-}
-
-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:10px;
-}
-
-th,td{
-  border:1px solid #ccc;
-  padding:8px;
-  text-align:left;
-}
-
-th{
-  background:#f0f0f0;
-}
-
-.violation{
-  color:#c0392b;
-  font-weight:bold;
-}
-
-img{
-  max-width:200px;
-  margin:10px;
-  border:2px solid #ccc;
-}
-</style>
+<title>Result</title>
 </head>
+<body style="font-family:Arial">
 
-<body>
+<h2>Exam Result</h2>
 
-<div class="container">
-  <h2>NEET CBT – Result Summary</h2>
+<div id="result"></div>
 
-  <div class="summary">
-    <div>Name: <span id="name"></span></div>
-    <div>Roll No: <span id="roll"></span></div>
-    <div>Score: <span id="score"></span></div>
-    <div>Violations: <span id="violations" class="violation"></span></div>
-  </div>
+<script src="questions.js"></script>
+<script>
+var answers = JSON.parse(sessionStorage.getItem("answers") || "[]");
+var score = 0;
 
-  <div class="section">
-    <h3>Violation Log</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Reason</th>
-          <th>Time</th>
-        </tr>
-      </thead>
-      <tbody id="vTable">
-        <tr><td colspan="3">Loading...</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="section">
-    <h3>Captured Screenshots</h3>
-    <div id="screenshots">No screenshots available</div>
-  </div>
-
-</div>
-
-<!-- ================= FIREBASE ================= -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyCuCTqLfuGPbhP6yNuMuIXsp6TqbLoFytg",
-  authDomain: "neet-cbt.firebaseapp.com",
-  projectId: "neet-cbt",
-  storageBucket: "neet-cbt.appspot.com",
-  messagingSenderId: "177192471849",
-  appId: "1:177192471849:web:1a29ef80f2b56cc1cdfb38"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-/* ===== LOAD LATEST RESULT ===== */
-async function loadResult(){
-  const q = query(
-    collection(db,"results"),
-    orderBy("submittedAt","desc"),
-    limit(1)
-  );
-
-  const snap = await getDocs(q);
-  if (snap.empty) return;
-
-  const data = snap.docs[0].data();
-
-  document.getElementById("name").innerText = data.name;
-  document.getElementById("roll").innerText = data.rollNo;
-  document.getElementById("score").innerText = data.score;
-  document.getElementById("violations").innerText = data.violations;
-
-  /* VIOLATION TABLE */
-  const tbody = document.getElementById("vTable");
-  tbody.innerHTML = "";
-
-  if (data.violationLog && data.violationLog.length > 0) {
-    data.violationLog.forEach((v,i)=>{
-      tbody.innerHTML += `
-        <tr>
-          <td>${i+1}</td>
-          <td>${v.reason}</td>
-          <td>${v.time}</td>
-        </tr>`;
-    });
-  } else {
-    tbody.innerHTML = ⁠ <tr><td colspan="3">No violations</td></tr> ⁠;
-  }
-
-  /* SCREENSHOTS (if any future added) */
-  const sDiv = document.getElementById("screenshots");
-  if (data.screenshots && data.screenshots.length > 0) {
-    sDiv.innerHTML = "";
-    data.screenshots.forEach(url=>{
-      const img=document.createElement("img");
-      img.src=url;
-      sDiv.appendChild(img);
-    });
-  }
+for (var i = 0; i < questions.length; i++) {
+  if (answers[i] === questions[i].correct) score += 4;
+  else if (answers[i] !== null) score -= 1;
 }
 
-loadResult();
+document.getElementById("result").innerHTML =
+  "<h3>Your Score: " + score + "</h3>";
 </script>
 
 </body>
