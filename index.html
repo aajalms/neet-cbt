@@ -5,42 +5,50 @@
 <title>NEET CBT</title>
 
 <style>
-body { font-family: Arial; margin:0; background:#f4f4f4; }
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  background: #f4f4f4;
+}
 
 .header {
-  background:#003366;
-  color:white;
-  padding:10px 20px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  font-size:14px;
+  background: #003366;
+  color: white;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.container { display:flex; }
+.container {
+  display: flex;
+}
 
-.main { width:70%; padding:20px; background:white; }
-.palette { width:30%; padding:20px; border-left:1px solid #ccc; background:#fafafa; }
+.main {
+  width: 70%;
+  padding: 20px;
+  background: white;
+}
+
+.palette {
+  width: 30%;
+  padding: 20px;
+  background: #fafafa;
+  border-left: 1px solid #ccc;
+}
 
 .palette button {
-  width:40px;
-  height:40px;
-  margin:4px;
-  border:none;
-  color:white;
-  font-weight:bold;
-  border-radius:4px;
+  width: 40px;
+  height: 40px;
+  margin: 4px;
 }
 
-.red { background:#e74c3c; }
-.green { background:#27ae60; }
-.yellow { background:#f1c40f; color:black; }
-.current { outline:3px solid black; }
+.green { background: #27ae60; color: white; }
+.red { background: #e74c3c; color: white; }
 
-.controls button {
-  margin:5px;
-  padding:8px 12px;
-  font-weight:bold;
+button {
+  padding: 6px 10px;
+  margin: 4px;
 }
 </style>
 </head>
@@ -49,206 +57,106 @@ body { font-family: Arial; margin:0; background:#f4f4f4; }
 
 <div class="header">
   <div>NEET CBT</div>
+  <button onclick="enterFullscreen()">Enter Fullscreen</button>
   <div>Time: <span id="timer">180:00</span></div>
-  <div>Violations: <span id="vCount">0</span></div>
 </div>
 
 <div class="container">
+  <div class="main">
+    <h3 id="qno"></h3>
+    <p id="qtext"></p>
+    <div id="options"></div>
 
-<div class="main">
-  <h3 id="qno"></h3>
-  <p id="qtext"></p>
-  <div id="options"></div>
-
-  <div class="controls">
     <button onclick="prev()">Previous</button>
     <button onclick="next()">Next</button>
-    <button onclick="clearResponse()">Clear Response</button>
-    <button onclick="markForReview()">Mark for Review</button>
     <button onclick="submitExam()">Submit Exam</button>
   </div>
-</div>
 
-<div class="palette">
-  <h4>Question Palette</h4>
-  <div id="palette"></div>
-</div>
-
+  <div class="palette">
+    <h4>Question Palette</h4>
+    <div id="palette"></div>
+  </div>
 </div>
 
 <script src="questions.js"></script>
 
 <script>
-/* ================= STUDENT DATA (TEMP) ================= */
-sessionStorage.setItem("rollNo", "101");
-sessionStorage.setItem("studentName", "Demo Student");
+function enterFullscreen() {
+  var el = document.documentElement;
+  if (el.requestFullscreen) el.requestFullscreen();
+}
 
-/* ================= PROCTORING ================= */
+var current = 0;
+var answers = new Array(questions.length).fill(null);
 
-const MAX_VIOLATIONS = 3;
-let violations = 0;
-let violationLock = false;
+function loadQuestion() {
+  document.getElementById("qno").innerText = "Question " + (current + 1);
+  document.getElementById("qtext").innerText = questions[current].q;
 
-function recordViolation(reason){
-  if (violationLock) return;
-  violationLock = true;
-
-  violations++;
-  vCount.innerText = violations;
-
-  alert("⚠️ PROCTORING ALERT\n\n" + reason +
-        "\nViolation " + violations + " / " + MAX_VIOLATIONS);
-
-  setTimeout(()=>violationLock=false,1500);
-
-  if (violations >= MAX_VIOLATIONS) {
-    alert("❌ Maximum violations reached.\nExam auto-submitted.");
-    submitExam(true);
+  var html = "";
+  for (var i = 0; i < questions[current].options.length; i++) {
+    var checked = answers[current] === i ? "checked" : "";
+    html += '<label><input type="radio" name="opt" value="'+i+'" '+checked+'> ' +
+            questions[current].options[i] + '</label><br>';
   }
-}
-
-document.addEventListener("visibilitychange",()=>{
-  if (document.hidden) recordViolation("Tab switching detected");
-});
-
-document.addEventListener("contextmenu",e=>{
-  e.preventDefault();
-  recordViolation("Right click detected");
-});
-
-document.addEventListener("keydown",e=>{
-  if (e.ctrlKey || e.metaKey || e.altKey || e.key==="F12") {
-    e.preventDefault();
-    recordViolation("Restricted key used");
-  }
-});
-
-/* ================= CBT LOGIC ================= */
-
-if (sessionStorage.getItem("examSubmitted")) {
-  location.replace("result.html");
-}
-
-let current = 0;
-let answers = new Array(questions.length).fill(null);
-let reviewSet = new Set();
-
-function saveAnswer(){
-  const sel=document.querySelector('input[name="opt"]:checked');
-  if(sel){
-    answers[current]=Number(sel.value);
-    reviewSet.delete(current);
-  }
-}
-
-function clearResponse(){
-  answers[current] = null;
-  reviewSet.delete(current);
-  loadQuestion();
-}
-
-function loadQuestion(){
-  qno.innerText = "Question " + (current+1);
-  qtext.innerText = questions[current].q;
-
-  options.innerHTML = questions[current].options.map((o,i)=>`
-    <label>
-      <input type="radio" name="opt" value="${i}"
-      ${answers[current]===i?"checked":""}>
-      ${o}
-    </label><br>
-  `).join("");
-
+  document.getElementById("options").innerHTML = html;
   updatePalette();
 }
 
-function createPalette(){
-  palette.innerHTML="";
-  questions.forEach((_,i)=>{
-    const b=document.createElement("button");
-    b.innerText=i+1;
-    b.onclick=()=>{saveAnswer();current=i;loadQuestion();};
-    palette.appendChild(b);
-  });
+function saveAnswer() {
+  var sel = document.querySelector('input[name="opt"]:checked');
+  if (sel) answers[current] = Number(sel.value);
 }
 
-function updatePalette(){
-  document.querySelectorAll(".palette button").forEach((b,i)=>{
-    b.className="";
-    if(answers[i]!==null) b.classList.add("green");
-    else b.classList.add("red");
-    if(reviewSet.has(i)) b.className="yellow";
-    if(i===current) b.classList.add("current");
-  });
-}
-
-function next(){ saveAnswer(); if(current<questions.length-1){current++;loadQuestion();}}
-function prev(){ saveAnswer(); if(current>0){current--;loadQuestion();}}
-
-function markForReview(){
+function next() {
   saveAnswer();
-  reviewSet.add(current);
-  updatePalette();
+  if (current < questions.length - 1) {
+    current++;
+    loadQuestion();
+  }
 }
 
-/* ================= SUBMIT ================= */
-
-function submitExam(auto=false){
+function prev() {
   saveAnswer();
-  if(!auto && !confirm("Submit exam?")) return;
-
-  let score=0, correct=0, skipped=0;
-
-  answers.forEach((a,i)=>{
-    if(a===null) skipped++;
-    else if(a===questions[i].correct){
-      score+=4; correct++;
-    } else {
-      score-=1;
-    }
-  });
-
-  let rollNo = sessionStorage.getItem("rollNo");
-  let studentName = sessionStorage.getItem("studentName");
-  let timeTaken = (180*60)-t;
-
-  /* RESULT PAGE DATA */
-  localStorage.setItem("rollNo", rollNo);
-  localStorage.setItem("studentName", studentName);
-  localStorage.setItem("score", score);
-  localStorage.setItem("correct", correct);
-  localStorage.setItem("timeTaken", timeTaken);
-  localStorage.setItem("violations", violations);
-
-  /* RANK LIST (NO DUPLICATES) */
-  let results = JSON.parse(localStorage.getItem("results")) || [];
-  results = results.filter(r => r.roll !== rollNo);
-  results.push({
-    roll: rollNo,
-    name: studentName,
-    score: score,
-    correct: correct,
-    time: timeTaken,
-    violations: violations
-  });
-  localStorage.setItem("results", JSON.stringify(results));
-
-  sessionStorage.setItem("examSubmitted","yes");
-  location.href="result.html";
+  if (current > 0) {
+    current--;
+    loadQuestion();
+  }
 }
 
-/* ================= TIMER ================= */
+function updatePalette() {
+  var p = document.getElementById("palette");
+  p.innerHTML = "";
+  for (let i = 0; i < questions.length; i++) {
+    let b = document.createElement("button");
+    b.innerText = i + 1;
+    b.className = answers[i] !== null ? "green" : "red";
+    b.onclick = function () {
+      saveAnswer();
+      current = i;
+      loadQuestion();
+    };
+    p.appendChild(b);
+  }
+}
 
-let t = 180*60;
-setInterval(()=>{
-  let m=Math.floor(t/60), s=t%60;
-  timer.innerText = m + ":" + (s<10?"0":"") + s;
-  t--;
-  if(t<0) submitExam(true);
-},1000);
+function submitExam() {
+  saveAnswer();
+  sessionStorage.setItem("answers", JSON.stringify(answers));
+  location.href = "result.html";
+}
 
-/* INIT */
-createPalette();
+/* TIMER */
+var timeLeft = 180 * 60;
+setInterval(function () {
+  var m = Math.floor(timeLeft / 60);
+  var s = timeLeft % 60;
+  document.getElementById("timer").innerText =
+    m + ":" + (s < 10 ? "0" : "") + s;
+  timeLeft--;
+  if (timeLeft < 0) submitExam();
+}, 1000);
+
 loadQuestion();
 </script>
 
