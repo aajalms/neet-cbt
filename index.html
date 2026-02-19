@@ -5,42 +5,42 @@
 <title>NEET CBT</title>
 
 <style>
-body{
-  font-family:Arial;
-  margin:0;
-  background:#f4f4f4;
-  overscroll-behavior:none;
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  background: #f4f4f4;
 }
 
-.header{
-  background:#003366;
-  color:#fff;
-  padding:10px 20px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  font-size:14px;
+.header {
+  background: #003366;
+  color: #fff;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.container{display:flex}
-.main{width:70%;padding:20px;background:#fff}
-.palette{width:30%;padding:20px;border-left:1px solid #ccc;background:#fafafa}
-
-.palette button{
-  width:40px;height:40px;margin:4px;border:none;
-  color:#fff;font-weight:bold;border-radius:4px
-}
-.red{background:#e74c3c}
-.green{background:#27ae60}
-.current{outline:3px solid #000}
-
-.controls button{
-  margin:5px;padding:8px 12px;font-weight:bold
+.container {
+  display: flex;
 }
 
-.fullscreen-btn{
-  background:#f1c40f;border:none;
-  padding:6px 10px;font-weight:bold;cursor:pointer
+.main {
+  width: 70%;
+  padding: 20px;
+  background: #fff;
+}
+
+.palette {
+  width: 30%;
+  padding: 20px;
+  background: #fafafa;
+  border-left: 1px solid #ccc;
+}
+
+button {
+  padding: 6px 10px;
+  margin: 4px;
+  cursor: pointer;
 }
 </style>
 </head>
@@ -49,193 +49,75 @@ body{
 
 <div class="header">
   <div>NEET CBT</div>
-  <button onclick="enterFullscreen()>Enter Fullscreen</button>
+  <button onclick="enterFullscreen()">Enter Fullscreen</button>
   <div>Time: <span id="timer">180:00</span></div>
-  <div>Violations: <span id="vCount">0</span></div>
 </div>
 
 <div class="container">
+  <div class="main">
+    <h3 id="qno"></h3>
+    <p id="qtext"></p>
+    <div id="options"></div>
 
-<div class="main">
-  <h3 id="qno"></h3>
-  <p id="qtext"></p>
-  <div id="options"></div>
-
-  <div class="controls">
     <button onclick="prev()">Previous</button>
     <button onclick="next()">Next</button>
-    <button onclick="clearResponse()">Clear Response</button>
-    <button onclick="markForReview()">Mark for Review</button>
-    <button onclick="submitExam()">Submit Exam</button>
+    <button onclick="submitExam()">Submit</button>
+  </div>
+
+  <div class="palette">
+    <h4>Question Palette</h4>
+    <div id="palette"></div>
   </div>
 </div>
 
-<div class="palette">
-  <h4>Question Palette</h4>
-  <div id="palette"></div>
-</div>
-
-</div>
-
-<!-- QUESTIONS -->
-<script src="questions.js"></script>
-
-<!-- FIREBASE -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
-
-const firebaseConfig={
-  apiKey:"AIzaSyCuCTqLfuGPbhP6yNuMuIXsp6TqbLoFytg",
-  authDomain:"neet-cbt.firebaseapp.com",
-  projectId:"neet-cbt",
-  storageBucket:"neet-cbt.appspot.com",
-  messagingSenderId:"177192471849",
-  appId:"1:177192471849:web:1a29ef80f2b56cc1cdfb38"
-};
-
-const app=initializeApp(firebaseConfig);
-window.db=getFirestore(app);
-window.storage=getStorage(app);
-window.addDoc=addDoc;
-window.collection=collection;
-window.ref=ref;
-window.uploadBytes=uploadBytes;
-window.getDownloadURL=getDownloadURL;
-</script>
-
 <script>
-/* STUDENT */
-sessionStorage.setItem("rollNo","101");
-sessionStorage.setItem("studentName","Demo Student");
-
-/* PROCTORING */
-const MAX_VIOLATIONS=3;
-let violations=0,lock=false;
-let violationLog=[],screenshots=[];
-
-async function takeScreenshot(reason){
-  const c=document.createElement("canvas");
-  c.width=window.innerWidth;
-  c.height=window.innerHeight;
-  const x=c.getContext("2d");
-  x.fillStyle="#000";x.fillRect(0,0,c.width,c.height);
-  x.fillStyle="#fff";x.font="20px Arial";
-  x.fillText("Violation: "+reason,30,40);
-  const blob=await new Promise(r=>c.toBlob(r,"image/png"));
-  const f=ref(storage,⁠ screenshots/${Date.now()}.png ⁠);
-  await uploadBytes(f,blob);
-  screenshots.push(await getDownloadURL(f));
-}
-
-async function recordViolation(reason){
-  if(lock)return;
-  lock=true;
-  violations++;
-  vCount.innerText=violations;
-  violationLog.push({reason,time:new Date().toLocaleTimeString()});
-  await takeScreenshot(reason);
-  alert(reason);
-  if(violations>=MAX_VIOLATIONS) submitExam(true);
-  setTimeout(()=>lock=false,1500);
-}
-
-document.addEventListener("visibilitychange",()=>{if(document.hidden)recordViolation("Tab switch")});
-document.addEventListener("contextmenu",e=>{e.preventDefault();recordViolation("Right click")});
-document.addEventListener("keydown",e=>{
-  if(e.ctrlKey||e.metaKey||e.altKey||e.key==="F12"){
-    e.preventDefault();recordViolation("Restricted key");
-  }
-});
-
-/* FULLSCREEN */
-<script>
+/* SAFE FULLSCREEN */
 function enterFullscreen() {
-  const elem = document.documentElement;
-  if (elem.requestFullscreen) {
-    elem.requestFullscreen();
-  } else if (elem.webkitRequestFullscreen) {
-    elem.webkitRequestFullscreen();
+  var el = document.documentElement;
+  if (el.requestFullscreen) {
+    el.requestFullscreen();
   }
 }
-</script>
 
-document.addEventListener("fullscreenchange",()=>{
-  if(!document.fullscreenElement)recordViolation("Exited fullscreen");
-});
+/* DUMMY QUESTIONS */
+var questions = [
+  { q: "2 + 2 = ?", options: ["1","2","4","5"], correct: 2 },
+  { q: "Heart pacemaker?", options: ["AV","SA","Bundle","Purkinje"], correct: 1 }
+];
 
-/* CBT LOGIC */
-let current=0;
-let answers=new Array(questions.length).fill(null);
+var current = 0;
+var answers = [];
 
-function saveAnswer(){
-  const s=document.querySelector('input[name="opt"]:checked');
-  if(s)answers[current]=Number(s.value);
+function loadQuestion() {
+  document.getElementById("qno").innerText = "Question " + (current + 1);
+  document.getElementById("qtext").innerText = questions[current].q;
+
+  var html = "";
+  for (var i = 0; i < questions[current].options.length; i++) {
+    html += '<label><input type="radio" name="opt" value="'+i+'"> ' +
+            questions[current].options[i] + '</label><br>';
+  }
+  document.getElementById("options").innerHTML = html;
 }
 
-function loadQuestion(){
-  qno.innerText="Question "+(current+1);
-  qtext.innerText=questions[current].q;
-  options.innerHTML=questions[current].options.map((o,i)=>
-    ⁠ <label><input type="radio" name="opt" value="${i}" ${answers[current]===i?"checked":""}> ${o}</label><br> ⁠
-  ).join("");
-  updatePalette();
+function next() {
+  if (current < questions.length - 1) {
+    current++;
+    loadQuestion();
+  }
 }
 
-function createPalette(){
-  palette.innerHTML="";
-  questions.forEach((_,i)=>{
-    const b=document.createElement("button");
-    b.innerText=i+1;
-    b.onclick=()=>{saveAnswer();current=i;loadQuestion();}
-    palette.appendChild(b);
-  });
+function prev() {
+  if (current > 0) {
+    current--;
+    loadQuestion();
+  }
 }
 
-function updatePalette(){
-  document.querySelectorAll(".palette button").forEach((b,i)=>{
-    b.className=answers[i]!==null?"green":"red";
-    if(i===current)b.classList.add("current");
-  });
+function submitExam() {
+  alert("Submitted");
 }
 
-function next(){saveAnswer();if(current<questions.length-1){current++;loadQuestion();}}
-function prev(){saveAnswer();if(current>0){current--;loadQuestion();}}
-function clearResponse(){answers[current]=null;loadQuestion();}
-function markForReview(){}
-
-/* SUBMIT */
-async function submitExam(auto=false){
-  saveAnswer();
-  if(!auto&&!confirm("Submit exam?"))return;
-
-  let score=0,correct=0;
-  answers.forEach((a,i)=>{
-    if(a===questions[i].correct){score+=4;correct++}
-    else if(a!==null)score-=1;
-  });
-
-  await addDoc(collection(db,"results"),{
-    rollNo:sessionStorage.getItem("rollNo"),
-    name:sessionStorage.getItem("studentName"),
-    score,correct,violations,violationLog,screenshots,
-    submittedAt:new Date()
-  });
-
-  location.href="result.html";
-}
-
-/* TIMER */
-let timeLeft=180*60;
-setInterval(()=>{
-  let m=Math.floor(timeLeft/60),s=timeLeft%60;
-  timer.innerText=m+":"+(s<10?"0":"")+s;
-  if(--timeLeft<0)submitExam(true);
-},1000);
-
-/* INIT */
-createPalette();
 loadQuestion();
 </script>
 
