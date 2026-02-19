@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>NEET PG CBT</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<style>
+body { margin:0; font-family: Arial, sans-serif; background:#eef2f6; }
+header {
+  background:#003366; color:#fff;
+  padding:12px 20px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.container { display:flex; height:calc(100vh - 56px); }
+.main { width:70%; padding:20px; background:#fff; }
+.palette { width:30%; padding:15px; background:#f7f9fb; border-left:1px solid #ccc; }
+.question { font-size:18px; margin-bottom:12px; }
+.options label { display:block; margin:8px 0; cursor:pointer; }
+button { padding:8px 14px; margin:8px 6px 0 0; }
+.palette button {
+  width:42px; margin:4px; border:none; padding:6px;
+}
+.timer { font-weight:bold; }
+</style>
+</head>
+
+<body>
+
+<header>
+  <div id="examName">Loading Exam…</div>
+  <div class="timer" id="timer">00:00</div>
+</header>
+
+<div class="container">
+  <div class="main">
+    <div class="question" id="question"></div>
+    <div class="options" id="options"></div>
+
+    <button onclick="prevQ()">Previous</button>
+    <button onclick="nextQ()">Next</button>
+    <button onclick="submitExam()">Submit</button>
+  </div>
+
+  <div class="palette" id="palette"></div>
+</div>
+
+<!-- FIREBASE SDK (COMPAT FOR GITHUB PAGES) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+/* ================= FIREBASE CONFIG ================= */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "neet-cbt.firebaseapp.com",
+  projectId: "neet-cbt",
+  storageBucket: "neet-cbt.appspot.com",
+  messagingSenderId: "XXXX",
+  appId: "XXXX"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+/* ================= QUESTIONS (TEMP – PHASE 2 WILL LOAD FROM DB) ================= */
+const questions = [
+  {
+    q: "Pacemaker of heart is?",
+    o: ["AV node", "SA node", "Bundle of His", "Purkinje fibers"],
+    a: 1
+  },
+  {
+    q: "Most common nerve injured in humerus fracture?",
+    o: ["Ulnar", "Radial", "Median", "Axillary"],
+    a: 1
+  }
+];
+
+let current = 0;
+let answers = Array(questions.length).fill(null);
+let timeLeft = 0;
+let timerInterval;
+
+/* ================= LOAD ADMIN CONFIG ================= */
+db.collection("admin").doc("config").get().then(doc => {
+  if (!doc.exists) {
+    alert("Admin config missing");
+    return;
+  }
+  const data = doc.data();
+  document.getElementById("examName").innerText = data.examName;
+  timeLeft = data.duration * 60;
+  startTimer();
+});
+
+/* ================= TIMER ================= */
+function startTimer() {
+  timerInterval = setInterval(() => {
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      submitExam();
+      return;
+    }
+    const m = Math.floor(timeLeft / 60);
+    const s = timeLeft % 60;
+    document.getElementById("timer").innerText =
+      String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+    timeLeft--;
+  }, 1000);
+}
+
+/* ================= RENDER QUESTION ================= */
+function renderQ() {
+  const q = questions[current];
+  document.getElementById("question").innerText =
+    (current + 1) + ". " + q.q;
+
+  const optBox = document.getElementById("options");
+  optBox.innerHTML = "";
+
+  q.o.forEach((opt, i) => {
+    const lbl = document.createElement("label");
+    lbl.innerHTML = `
+      <input type="radio" name="opt"
+        ${answers[current] === i ? "checked" : ""}
+        onclick="answers[${current}] = ${i}">
+      ${opt}
+    `;
+    optBox.appendChild(lbl);
+  });
+  renderPalette();
+}
+
+/* ================= PALETTE ================= */
+function renderPalette() {
+  const p = document.getElementById("palette");
+  p.innerHTML = "";
+  questions.forEach((_, i) => {
+    const b = document.createElement("button");
+    b.innerText = i + 1;
+    b.style.background =
+      answers[i] === null ? "#ccc" : "#66cc66";
+    b.onclick = () => { current = i; renderQ(); };
+    p.appendChild(b);
+  });
+}
+
+/* ================= NAVIGATION ================= */
+function nextQ() {
+  if (current < questions.length - 1) {
+    current++; renderQ();
+  }
+}
+function prevQ() {
+  if (current > 0) {
+    current--; renderQ();
+  }
+}
+
+/* ================= SUBMIT + NEET PG MARKING ================= */
+function submitExam() {
+  clearInterval(timerInterval);
+
+  let correct = 0, wrong = 0;
+  answers.forEach((ans, i) => {
+    if (ans === null) return;
+    if (ans === questions[i].a) correct++;
+    else wrong++;
+  });
+
+  const score = (correct * 4) - (wrong * 1);
+
+  alert(
+    "TEST SUBMITTED\n\n" +
+    "Correct: " + correct +
+    "\nWrong: " + wrong +
+    "\nScore: " + score
+  );
+
+  location.reload();
+}
+
+/* INIT */
+renderQ();
+</script>
+
+</body>
+</html>
