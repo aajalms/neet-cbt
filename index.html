@@ -88,25 +88,16 @@ sessionStorage.setItem("studentName", "Demo Student");
 const MAX_VIOLATIONS = 3;
 let violations = 0;
 let violationLock = false;
-let violationLog = [];
 
 function recordViolation(reason){
   if (violationLock) return;
   violationLock = true;
 
   violations++;
-  violationLog.push({
-    reason: reason,
-    time: new Date().toLocaleTimeString()
-  });
+  vCount.innerText = violations;
 
-  document.getElementById("vCount").innerText = violations;
-
-  alert(
-    "⚠️ PROCTORING ALERT\n\n" +
-    reason +
-    "\nViolation " + violations + " / " + MAX_VIOLATIONS
-  );
+  alert("⚠️ PROCTORING ALERT\n\n" + reason +
+        "\nViolation " + violations + " / " + MAX_VIOLATIONS);
 
   setTimeout(()=>violationLock=false,1500);
 
@@ -157,29 +148,27 @@ function clearResponse(){
 }
 
 function loadQuestion(){
-  document.getElementById("qno").innerText = "Question " + (current+1);
-  document.getElementById("qtext").innerText = questions[current].q;
+  qno.innerText = "Question " + (current+1);
+  qtext.innerText = questions[current].q;
 
-  document.getElementById("options").innerHTML =
-    questions[current].options.map((o,i)=>`
-      <label>
-        <input type="radio" name="opt" value="${i}"
-        ${answers[current]===i?"checked":""}>
-        ${o}
-      </label><br>
-    `).join("");
+  options.innerHTML = questions[current].options.map((o,i)=>`
+    <label>
+      <input type="radio" name="opt" value="${i}"
+      ${answers[current]===i?"checked":""}>
+      ${o}
+    </label><br>
+  `).join("");
 
   updatePalette();
 }
 
 function createPalette(){
-  const p=document.getElementById("palette");
-  p.innerHTML="";
+  palette.innerHTML="";
   questions.forEach((_,i)=>{
     const b=document.createElement("button");
     b.innerText=i+1;
     b.onclick=()=>{saveAnswer();current=i;loadQuestion();};
-    p.appendChild(b);
+    palette.appendChild(b);
   });
 }
 
@@ -208,28 +197,30 @@ function submitExam(auto=false){
   saveAnswer();
   if(!auto && !confirm("Submit exam?")) return;
 
-  let score=0, correct=0;
+  let score=0, correct=0, skipped=0;
 
   answers.forEach((a,i)=>{
-    if(a!==null && a===questions[i].correct){
+    if(a===null) skipped++;
+    else if(a===questions[i].correct){
       score+=4; correct++;
-    } else if(a!==null){
+    } else {
       score-=1;
     }
   });
 
   let rollNo = sessionStorage.getItem("rollNo");
   let studentName = sessionStorage.getItem("studentName");
-  let timeTaken = (180*60) - timeLeft;
+  let timeTaken = (180*60)-t;
 
+  /* RESULT PAGE DATA */
   localStorage.setItem("rollNo", rollNo);
   localStorage.setItem("studentName", studentName);
   localStorage.setItem("score", score);
   localStorage.setItem("correct", correct);
   localStorage.setItem("timeTaken", timeTaken);
   localStorage.setItem("violations", violations);
-  localStorage.setItem("violationLog", JSON.stringify(violationLog));
 
+  /* RANK LIST (NO DUPLICATES) */
   let results = JSON.parse(localStorage.getItem("results")) || [];
   results = results.filter(r => r.roll !== rollNo);
   results.push({
@@ -248,13 +239,12 @@ function submitExam(auto=false){
 
 /* ================= TIMER ================= */
 
-let timeLeft = 180*60;
+let t = 180*60;
 setInterval(()=>{
-  let m=Math.floor(timeLeft/60), s=timeLeft%60;
-  document.getElementById("timer").innerText =
-    m + ":" + (s<10?"0":"") + s;
-  timeLeft--;
-  if(timeLeft < 0) submitExam(true);
+  let m=Math.floor(t/60), s=t%60;
+  timer.innerText = m + ":" + (s<10?"0":"") + s;
+  t--;
+  if(t<0) submitExam(true);
 },1000);
 
 /* INIT */
