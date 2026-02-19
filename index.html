@@ -49,7 +49,7 @@ body{
 
 <div class="header">
   <div>NEET CBT</div>
-  <button class="fullscreen-btn" onclick="enterFullscreen()">Enter Fullscreen</button>
+  <button onclick="enterFullscreen()>Enter Fullscreen</button>
   <div>Time: <span id="timer">180:00</span></div>
   <div>Violations: <span id="vCount">0</span></div>
 </div>
@@ -150,11 +150,16 @@ document.addEventListener("keydown",e=>{
 });
 
 /* FULLSCREEN */
-function enterFullscreen(){
-  const el=document.documentElement;
-  if(el.requestFullscreen)el.requestFullscreen();
-  else if(el.webkitRequestFullscreen)el.webkitRequestFullscreen();
+<script>
+function enterFullscreen() {
+  const elem = document.documentElement;
+  if (elem.requestFullscreen) {
+    elem.requestFullscreen();
+  } else if (elem.webkitRequestFullscreen) {
+    elem.webkitRequestFullscreen();
+  }
 }
+</script>
 
 document.addEventListener("fullscreenchange",()=>{
   if(!document.fullscreenElement)recordViolation("Exited fullscreen");
