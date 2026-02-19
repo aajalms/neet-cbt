@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NEET PG CBT</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
+  overscroll-behavior: none;
+}
+
+header {
+  background: #003366;
+  color: white;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.container {
+  display: flex;
+  height: calc(100vh - 60px);
+}
+
+.main {
+  width: 70%;
+  padding: 20px;
+  background: white;
+}
+
+.palette {
+  width: 30%;
+  padding: 20px;
+  background: #eef2f6;
+  border-left: 1px solid #ccc;
+}
+
+.question {
+  font-size: 18px;
+  margin-bottom: 15px;
+}
+
+.options label {
+  display: block;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.controls button {
+  padding: 8px 14px;
+  margin: 8px 5px 0 0;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* ===== NBE COLORS ===== */
+.palette button {
+  width: 40px;
+  height: 40px;
+  margin: 4px;
+  border: none;
+  color: #fff;
+  font-weight: bold;
+}
+.red { background:#e74c3c; }       /* Not answered */
+.green { background:#27ae60; }     /* Answered */
+.yellow { background:#f1c40f; color:#000; } /* Review */
+.blue { background:#3498db; }      /* Answered + Review */
+.current { outline: 3px solid black; }
+
+.timer { font-weight: bold; }
+</style>
+</head>
+
+<body>
+
+<header>
+  <div>NEET PG CBT</div>
+  <div class="timer" id="timer">210:00</div>
+  <div>Violations: <span id="vCount">0</span></div>
+</header>
+
+<div class="container">
+  <div class="main">
+    <div class="question" id="question"></div>
+    <div class="options" id="options"></div>
+
+    <div class="controls">
+      <button onclick="prevQuestion()">Previous</button>
+      <button onclick="nextQuestion()">Next</button>
+      <button onclick="clearResponse()">Clear</button>
+      <button onclick="markForReview()">Mark for Review</button>
+      <button onclick="submitExam()">Submit</button>
+    </div>
+  </div>
+
+  <div class="palette" id="palette"></div>
+</div>
+
+<script>
+/* ================= QUESTIONS ================= */
+const questions = [
+  {
+    q: "Pacemaker of heart is?",
+    o: ["AV node", "SA node", "Bundle of His", "Purkinje fibers"],
+    a: 1
+  },
+  {
+    q: "Most common nerve injured in humerus fracture?",
+    o: ["Ulnar", "Radial", "Median", "Axillary"],
+    a: 1
+  }
+];
+
+/* ================= STATE ================= */
+let current = 0;
+let answers = Array(questions.length).fill(null);
+let reviewSet = new Set();
+
+/* ================= TIMER ================= */
+let timeLeft = 210 * 60;
+const timerEl = document.getElementById("timer");
+
+setInterval(() => {
+  let m = Math.floor(timeLeft / 60);
+  let s = timeLeft % 60;
+  timerEl.innerText =
+    m.toString().padStart(2,"0") + ":" +
+    s.toString().padStart(2,"0");
+  timeLeft--;
+  if (timeLeft < 0) submitExam(true);
+}, 1000);
+
+/* ================= RENDER ================= */
+function renderQuestion() {
+  const q = questions[current];
+  document.getElementById("question").innerText =
+    ⁠ Question ${current+1}. ${q.q} ⁠;
+
+  const optDiv = document.getElementById("options");
+  optDiv.innerHTML = "";
+
+  q.o.forEach((opt,i) => {
+    optDiv.innerHTML += `
+      <label>
+        <input type="radio" name="opt"
+          ${answers[current]===i?"checked":""}
+          onclick="answers[${current}] = ${i}">
+        ${opt}
+      </label>`;
+  });
+
+  updatePalette();
+}
+
+/* ================= PALETTE (REAL NBE LOGIC) ================= */
+function updatePalette() {
+  const p = document.getElementById("palette");
+  p.innerHTML = "";
+
+  questions.forEach((_,i) => {
+    const b = document.createElement("button");
+    b.innerText = i+1;
+
+    if (reviewSet.has(i) && answers[i] !== null) b.className="blue";
+    else if (reviewSet.has(i)) b.className="yellow";
+    else if (answers[i] !== null) b.className="green";
+    else b.className="red";
+
+    if (i === current) b.classList.add("current");
+
+    b.onclick = ()=>{ current=i; renderQuestion(); };
+    p.appendChild(b);
+  });
+}
+
+/* ================= NAV ================= */
+function nextQuestion(){ if(current<questions.length-1){current++;renderQuestion();}}
+function prevQuestion(){ if(current>0){current--;renderQuestion();}}
+function clearResponse(){ answers[current]=null; renderQuestion(); }
+
+/* ===== TOGGLE MARK FOR REVIEW (FIXED) ===== */
+function markForReview() {
+  if (reviewSet.has(current)) reviewSet.delete(current);
+  else reviewSet.add(current);
+  renderQuestion();
+}
+
+/* ================= SUBMIT (+4 / −1) ================= */
+function submitExam(auto=false) {
+  let score=0,correct=0,wrong=0,skipped=0;
+
+  answers.forEach((ans,i)=>{
+    if(ans===questions[i].a){score+=4;correct++;}
+    else if(ans===null){skipped++;}
+    else{score-=1;wrong++;}
+  });
+
+  /* ===== SERVER-READY RESULT OBJECT ===== */
+  const result = {
+    rollNo: sessionStorage.getItem("rollNo") || "TEST",
+    total: questions.length,
+    correct, wrong, skipped,
+    score,
+    timeUsed:(210*60-timeLeft),
+    violations,
+    status: violations>=3?"AUTO_SUBMITTED":"SUBMITTED",
+    submittedAt:new Date().toISOString()
+  };
+
+  /* ===== LOCAL (GitHub Pages safe) ===== */
+  sessionStorage.setItem("neetResult", JSON.stringify(result));
+
+  /* ===== SERVER HOOK (ACTIVATE LATER) ===== */
+  /*
+  fetch("https://your-server/api/submit",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify(result)
+  });
+  */
+
+  window.location.href="result.html";
+}
+
+/* ================= SECURITY ================= */
+const MAX_VIOLATIONS=3;
+let violations=0, lock=false;
+const vCount=document.getElementById("vCount");
+
+function forceFullscreen(){
+  document.documentElement.requestFullscreen?.();
+}
+setTimeout(forceFullscreen,1000);
+
+document.addEventListener("fullscreenchange",()=>{
+  if(!document.fullscreenElement) recordViolation("Exited fullscreen");
+});
+document.addEventListener("visibilitychange",()=>{
+  if(document.hidden) recordViolation("Tab/App switch");
+});
+document.addEventListener("contextmenu",e=>{
+  e.preventDefault(); recordViolation("Right click");
+});
+document.addEventListener("keydown",e=>{
+  if(e.key==="F12"||e.key==="F5"||(e.ctrlKey&&["r","u","s"].includes(e.key))){
+    e.preventDefault(); recordViolation("Restricted key");
+  }
+});
+
+function recordViolation(reason){
+  if(lock) return;
+  lock=true;
+  violations++; vCount.innerText=violations;
+
+  if(violations>=MAX_VIOLATIONS){
+    alert("❌ Auto-submitted due to violations");
+    submitExam(true);
+  } else {
+    alert("⚠ "+reason+" ("+violations+"/"+MAX_VIOLATIONS+")");
+  }
+  setTimeout(()=>lock=false,1500);
+}
+
+/* INIT */
+renderQuestion();
+</script>
+
+</body>
+</html>
