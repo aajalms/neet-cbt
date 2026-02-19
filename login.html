@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>CBT Login</title>
+<style>
+body{
+  font-family:Arial;
+  background:#eef2f7;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+.box{
+  background:#fff;
+  padding:30px;
+  width:320px;
+  border-radius:8px;
+  box-shadow:0 0 10px rgba(0,0,0,.1);
+}
+h2{text-align:center;color:#003366;}
+input,button{
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+}
+button{
+  background:#003366;
+  color:white;
+  border:none;
+  cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<div class="box">
+<h2>CBT Login</h2>
+<input id="roll" placeholder="Roll Number" required>
+<input id="name" placeholder="Student Name" required>
+<button onclick="login()">Proceed</button>
+</div>
+
+<script>
+function login(){
+  const roll=document.getElementById("roll").value.trim();
+  const name=document.getElementById("name").value.trim();
+  if(!roll||!name){ alert("Fill all fields"); return; }
+
+  sessionStorage.setItem("roll",roll);
+  sessionStorage.setItem("name",name);
+  location.href="instructions.html";
+}
+</script>
+</body>
+</html>
