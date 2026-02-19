@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NEET PG Result</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #eef2f6;
+}
+
+.header {
+  background: #003366;
+  color: white;
+  padding: 15px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.card {
+  background: white;
+  max-width: 600px;
+  margin: 30px auto;
+  padding: 20px;
+  border-radius: 6px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.label {
+  font-weight: bold;
+}
+
+.score {
+  font-size: 28px;
+  color: #27ae60;
+  text-align: center;
+  margin: 20px 0;
+}
+
+.warning {
+  color: #c0392b;
+  text-align: center;
+  margin-top: 15px;
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">NEET PG – Examination Result</div>
+
+<div class="card">
+  <div class="score" id="score">Score: 0</div>
+
+  <div class="row">
+    <div class="label">Total Questions</div>
+    <div id="total"></div>
+  </div>
+
+  <div class="row">
+    <div class="label">Correct</div>
+    <div id="correct"></div>
+  </div>
+
+  <div class="row">
+    <div class="label">Wrong</div>
+    <div id="wrong"></div>
+  </div>
+
+  <div class="row">
+    <div class="label">Skipped</div>
+    <div id="skipped"></div>
+  </div>
+
+  <div class="row">
+    <div class="label">Time Taken</div>
+    <div id="time"></div>
+  </div>
+
+  <div class="row">
+    <div class="label">Security Violations</div>
+    <div id="violations"></div>
+  </div>
+
+  <div class="warning" id="warning"></div>
+</div>
+
+<script>
+const data = JSON.parse(sessionStorage.getItem("neetResult"));
+
+if (!data) {
+  alert("No result data found");
+  location.href = "index.html";
+}
+
+document.getElementById("score").innerText = "Score: " + data.score;
+document.getElementById("total").innerText = data.total;
+document.getElementById("correct").innerText = data.correct;
+document.getElementById("wrong").innerText = data.wrong;
+document.getElementById("skipped").innerText = data.skipped;
+document.getElementById("violations").innerText = data.violations;
+
+const minutes = Math.floor(data.timeUsed / 60);
+const seconds = data.timeUsed % 60;
+document.getElementById("time").innerText =
+  minutes + " min " + seconds + " sec";
+
+if (data.violations > 0) {
+  document.getElementById("warning").innerText =
+    "⚠️ Exam conducted under proctoring. Violations recorded.";
+}
+</script>
+
+</body>
+</html>
