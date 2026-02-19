@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>NEET CBT Instructions</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f2f2f2;
+    }
+    .box {
+      width: 80%;
+      margin: 30px auto;
+      background: white;
+      padding: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      background: green;
+      color: white;
+      border: none;
+      font-size: 16px;
+    }
+  </style>
+</head>
+
+<body>
+<div class="box">
+  <h2>NEET Examination Instructions</h2>
+
+  <ul>
+    <li>Total Questions: 200</li>
+    <li>Total Time: 3 Hours</li>
+    <li>+4 marks for correct answer</li>
+    <li>-1 mark for wrong answer</li>
+    <li>No negative mark for unattempted</li>
+    <li>Do not refresh or close browser</li>
+  </ul>
+
+  <input type="checkbox" id="agree"> I have read and understood the instructions  
+  <br><br>
+
+  <button onclick="startExam()">Start Examination</button>
+</div>
+
+<script>
+function startExam() {
+  if (!document.getElementById("agree").checked) {
+    alert("Please agree to instructions");
+    return;
+  }
+  window.location.href = "index.html";
+}
+</script>
+
+</body>
+</html>
