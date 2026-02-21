@@ -1,161 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>NEET PG – Result</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<!-- jsPDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-<style>
-body {
-  font-family: Arial, sans-serif;
-  background: #e9eef3;
-  margin: 0;
-  padding: 20px;
-}
-.card {
-  max-width: 900px;
-  margin: auto;
-  background: #fff;
-  padding: 25px;
-  border-radius: 6px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
-}
-h2 {
-  text-align: center;
-  color: #003366;
-}
-.grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 15px;
-}
-.box {
-  background: #f5f7fa;
-  padding: 15px;
-  border-left: 6px solid #003366;
-}
-.box span {
-  font-size: 22px;
-  font-weight: bold;
-}
-.score {
-  text-align: center;
-  margin: 30px 0;
-}
-.score span {
-  font-size: 40px;
-  color: #27ae60;
-  font-weight: bold;
-}
-.warn {
-  color: #c0392b;
-  font-weight: bold;
-  text-align: center;
-}
-.footer {
-  text-align: center;
-  margin-top: 25px;
-  color: #555;
-}
-button {
-  padding: 10px 16px;
-  font-weight: bold;
-  cursor: pointer;
-  background: #003366;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-}
-.center { text-align:center; }
-</style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NEET PG CBT - Result</title>
+  <style>
+    body{margin:0;font-family:Arial;background:#eef2f7;padding:20px;}
+    .box{max-width:900px;margin:auto;background:#fff;border-radius:6px;padding:18px;box-shadow:0 2px 10px rgba(0,0,0,.08);}
+    h2{margin:0 0 10px;background:#003366;color:#fff;padding:10px;border-radius:4px;}
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+    .card{background:#f7f7f7;padding:12px;border-left:5px solid #003366;}
+    .small{font-size:12px;color:#666;}
+    button{margin-top:14px;background:#003366;color:#fff;border:0;padding:10px 12px;border-radius:4px;font-weight:bold;cursor:pointer;}
+    pre{white-space:pre-wrap;background:#f8f9fa;padding:10px;border-radius:6px;border:1px solid #ddd;}
+  </style>
 </head>
-
 <body>
+  <div class="box">
+    <h2>Result</h2>
+    <div id="cand" class="small"></div>
 
-<div class="card">
+    <div class="grid" style="margin-top:12px;">
+      <div class="card">Score: <b id="score">0</b></div>
+      <div class="card">Correct: <b id="correct">0</b></div>
+      <div class="card">Wrong: <b id="wrong">0</b></div>
+      <div class="card">Unattempted: <b id="unatt">0</b></div>
+      <div class="card">Violations: <b id="viol">0</b></div>
+      <div class="card">Submitted At: <b id="subtime">-</b></div>
+    </div>
 
-<h2>NEET PG – Examination Result</h2>
+    <button onclick="review()">Show Answer Review</button>
+    <pre id="reviewBox" style="display:none;"></pre>
+  </div>
 
-<div class="grid">
-  <div class="box">Total Questions<br><span id="total"></span></div>
-  <div class="box">Correct Answers<br><span id="correct"></span></div>
-  <div class="box">Wrong Answers<br><span id="wrong"></span></div>
-  <div class="box">Skipped<br><span id="skipped"></span></div>
-  <div class="box">Marked for Review<br><span id="review"></span></div>
-  <div class="box">Violations<br><span id="violations"></span></div>
-</div>
+  <script src="questions.js"></script>
+  <script>
+    const c = JSON.parse(localStorage.getItem("candidate")||"null");
+    const res = JSON.parse(localStorage.getItem("result")||"null");
+    const state = JSON.parse(localStorage.getItem("cbt_state")||"null");
+    const answers = JSON.parse(localStorage.getItem("userAnswers")||"[]");
 
-<div class="score">
-  Final Score<br>
-  <span id="score"></span>
-</div>
+    if(!c || !res){ location.href="login.html"; }
 
-<div class="warn" id="violationMsg"></div>
+    document.getElementById("cand").innerText = `${c.name} (${c.roll})`;
+    document.getElementById("score").innerText = res.score;
+    document.getElementById("correct").innerText = res.correct;
+    document.getElementById("wrong").innerText = res.wrong;
+    document.getElementById("unatt").innerText = res.unattempted;
+    document.getElementById("viol").innerText = (state?.violations ?? 0);
+    document.getElementById("subtime").innerText = new Date(res.submittedAt).toLocaleString();
 
-<div class="center">
-  <button onclick="downloadPDF()">Download PDF Scorecard</button>
-</div>
+    function review(){
+      const box = document.getElementById("reviewBox");
+      box.style.display = "block";
 
-<div class="footer">
-  Marking Scheme: +4 for correct | −1 for wrong | 0 for unattempted<br>
-  This is a CBT simulation
-</div>
+      let out = "";
+      questions.forEach((q,i)=>{
+        const sel = answers[i];
+        out += `Q${i+1}. ${q.q}\n`;
+        q.options.forEach((op,idx)=>{
+          const correct = (idx===q.answer) ? "✅" : "";
+          const chosen = (sel===idx) ? "👉" : "";
+          out += `   ${String.fromCharCode(65+idx)}. ${op} ${chosen} ${correct}\n`;
+        });
+        out += "\n";
+      });
 
-</div>
-
-<script>
-const data = JSON.parse(sessionStorage.getItem("neetResult"));
-
-if (!data) {
-  document.body.innerHTML = "<h2 style='text-align:center'>No Result Found</h2>";
-}
-
-/* ===== SHOW RESULT ===== */
-document.getElementById("total").innerText = data.total;
-document.getElementById("correct").innerText = data.correct;
-document.getElementById("wrong").innerText = data.wrong;
-document.getElementById("skipped").innerText = data.skipped;
-document.getElementById("score").innerText = data.score;
-document.getElementById("violations").innerText = data.violations || 0;
-
-document.getElementById("review").innerText =
-  Math.max(0, data.total - (data.correct + data.wrong + data.skipped));
-
-if (data.violations >= 3) {
-  document.getElementById("violationMsg").innerText =
-    "⚠ Exam was auto-submitted due to violations";
-}
-
-/* ===== PDF SCORECARD ===== */
-function downloadPDF(){
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF();
-
-  pdf.setFontSize(16);
-  pdf.text("NEET PG CBT – SCORE CARD", 20, 20);
-
-  pdf.setFontSize(12);
-  pdf.text("Roll No: " + data.rollNo, 20, 35);
-  pdf.text("Status: " + data.status, 20, 45);
-
-  pdf.text("Total Questions: " + data.total, 20, 60);
-  pdf.text("Correct: " + data.correct, 20, 70);
-  pdf.text("Wrong: " + data.wrong, 20, 80);
-  pdf.text("Skipped: " + data.skipped, 20, 90);
-  pdf.text("Violations: " + data.violations, 20, 100);
-
-  pdf.setFontSize(14);
-  pdf.text("Final Score: " + data.score, 20, 120);
-
-  pdf.setFontSize(10);
-  pdf.text("Generated on: " + new Date().toLocaleString(), 20, 140);
-
-  pdf.save(data.rollNo + "_NEET_CBT_Scorecard.pdf");
-}
-</script>
-
+      box.textContent = out;
+      box.scrollIntoView({behavior:"smooth"});
+    }
+  </script>
 </body>
 </html>
