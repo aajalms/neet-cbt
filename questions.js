@@ -1,5 +1,5 @@
 // questions.js
-const questions = [
+window.questions = [
   {
     question:
       "A patient presents to the emergency department with acute respiratory distress. The chest X-ray image shows a sharp white line along the lateral chest wall with absence of lung markings beyond it. What is the MOST LIKELY diagnosis?",
