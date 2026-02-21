@@ -1,118 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>NEET PG CBT</title>
-
   <style>
-    body { margin:0; font-family: Arial, sans-serif; background:#f4f6f8; }
-    header {
-      background:#003366; color:#fff; padding:12px 16px;
-      display:flex; justify-content:space-between; align-items:center;
-    }
-    header .left { font-weight:700; }
-    header .right { display:flex; gap:14px; align-items:center; font-weight:600; }
+    body{margin:0;font-family:Arial;background:#eef2f7;overscroll-behavior:none;}
+    .header{background:#003366;color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;font-size:15px;}
+    .container{display:flex;height:calc(100vh - 50px);}
+    .main{width:70%;background:#fff;padding:16px;overflow:auto;}
+    .palette{width:30%;background:#f2f4f7;border-left:1px solid #ccc;padding:16px;overflow:auto;}
+    .qtitle{font-size:18px;font-weight:bold;margin:0 0 10px;}
+    .qtext{white-space:pre-wrap;font-size:15px;line-height:1.5;}
+    .options{margin-top:14px;}
+    .opt{display:block;padding:10px;margin:8px 0;border:1px solid #ddd;border-radius:6px;cursor:pointer;background:#fff;}
+    .opt input{margin-right:10px;}
+    .controls{margin-top:14px;display:flex;flex-wrap:wrap;gap:10px;}
+    button{border:0;border-radius:6px;padding:10px 12px;font-weight:bold;cursor:pointer;}
+    .btn-prev{background:#e6e6e6;}
+    .btn-clear{background:#e6e6e6;}
+    .btn-mark{background:#f39c12;color:#fff;}
+    .btn-save{background:#3498db;color:#fff;}
+    .btn-submit{background:#e74c3c;color:#fff;}
+    .marking{color:#444;font-size:13px;margin-top:6px;}
 
-    .container { display:flex; height: calc(100vh - 52px); }
-    .main { width:70%; padding:16px; background:#fff; overflow:auto; }
-    .side { width:30%; padding:16px; background:#eef2f6; border-left:1px solid #cfcfcf; overflow:auto; }
-
-    .qno { font-weight:700; margin-bottom:8px; }
-    .qtext { font-size:18px; margin-bottom:12px; line-height:1.4; }
-
-    .options label {
-      display:block; padding:10px; margin:8px 0;
-      border:1px solid #d7d7d7; border-radius:6px;
-      cursor:pointer; background:#fafafa;
-    }
-    .options input { margin-right:10px; }
-
-    .controls {
-      display:flex; flex-wrap:wrap; gap:10px;
-      margin-top:14px; padding-top:12px; border-top:1px solid #e5e5e5;
-    }
-    .controls button {
-      padding:10px 12px; border:none; border-radius:6px;
-      cursor:pointer; font-weight:700;
-    }
-    .btn-gray { background:#e0e0e0; }
-    .btn-blue { background:#1e88e5; color:#fff; }
-    .btn-orange { background:#f39c12; color:#fff; }
-    .btn-red { background:#e74c3c; color:#fff; }
-
-    .legend { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
-    .chip { display:flex; align-items:center; gap:8px; font-size:13px; }
-    .dot { width:14px; height:14px; border-radius:3px; display:inline-block; }
-
-    .notVisited { background:#b0b0b0; }
-    .notAnswered { background:#e74c3c; }
-    .answered { background:#27ae60; }
-    .marked { background:#8e44ad; }
-    .answeredMarked { background:linear-gradient(135deg,#27ae60 50%,#8e44ad 50%); }
-    .current { outline:3px solid #000; }
-
-    .palette { display:flex; flex-wrap:wrap; gap:8px; }
-    .pbtn {
-      width:40px; height:40px; border:none; border-radius:6px;
-      color:#fff; font-weight:800; cursor:pointer;
-    }
-
-    .topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
-    .submitBox { margin-top:14px; padding-top:12px; border-top:1px solid #d7d7d7; }
-    .small { font-size:12px; opacity:0.9; }
+    .legend{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;margin-bottom:12px;}
+    .chip{display:flex;align-items:center;gap:8px;}
+    .box{width:16px;height:16px;border-radius:4px;border:1px solid #aaa;}
+    .nv{background:#bdbdbd;}
+    .na{background:#e74c3c;}
+    .ans{background:#27ae60;}
+    .mark{background:#8e44ad;}
+    .am{background:linear-gradient(135deg,#27ae60 50%,#8e44ad 50%);}
+    .palTitle{font-size:18px;font-weight:bold;margin:10px 0;}
+    .grid{display:flex;flex-wrap:wrap;gap:8px;}
+    .qbtn{width:40px;height:40px;border:0;border-radius:6px;color:#fff;font-weight:bold;cursor:pointer;}
+    .current{outline:3px solid #000;}
+    .proctor{margin-top:12px;font-size:12px;color:#222;background:#fff3cd;border:1px solid #ffeeba;padding:10px;border-radius:6px;}
   </style>
-
-  <!-- IMPORTANT: defer loads in order and after parsing HTML -->
-  <script defer src="questions.js"></script>
-  <script defer src="script.js"></script>
 </head>
-
 <body>
-<header>
-  <div class="left">NEET PG CBT</div>
-  <div class="right">
-    <div>Time Left: <span id="timer">180:00</span></div>
-    <div class="small" id="statusLine"></div>
-  </div>
-</header>
-
-<div class="container">
-  <div class="main">
-    <div class="topbar">
-      <div class="qno" id="qno">Question</div>
-      <div class="small">Marking: +4 / 0 (customizable)</div>
-    </div>
-
-    <div class="qtext" id="qtext">Loading...</div>
-    <div class="options" id="options"></div>
-
-    <div class="controls">
-      <button class="btn-gray" id="btnPrev">Previous</button>
-      <button class="btn-gray" id="btnClear">Clear Response</button>
-      <button class="btn-orange" id="btnMark">Mark for Review</button>
-      <button class="btn-blue" id="btnSaveNext">Save & Next</button>
-      <button class="btn-red" id="btnSubmit">Submit Test</button>
+  <div class="header">
+    <div>NEET PG CBT</div>
+    <div>
+      Time Left: <span id="timer">180:00</span>
+      &nbsp;|&nbsp; Violations: <span id="viol">0</span>
     </div>
   </div>
 
-  <div class="side">
-    <div class="legend">
-      <div class="chip"><span class="dot notVisited"></span> Not Visited</div>
-      <div class="chip"><span class="dot notAnswered"></span> Not Answered</div>
-      <div class="chip"><span class="dot answered"></span> Answered</div>
-      <div class="chip"><span class="dot marked"></span> Marked</div>
-      <div class="chip"><span class="dot answeredMarked"></span> Answered & Marked</div>
-      <div class="chip"><span class="dot current" style="background:#fff;"></span> Current</div>
+  <div class="container">
+    <div class="main">
+      <div class="qtitle">Question <span id="qno">1</span></div>
+      <div class="marking">Marking: +4 / -1 / 0</div>
+      <hr/>
+      <div class="qtext" id="qtext"></div>
+
+      <div class="options" id="options"></div>
+
+      <div class="controls">
+        <button class="btn-prev" onclick="prevQ()">Previous</button>
+        <button class="btn-clear" onclick="clearResponse()">Clear Response</button>
+        <button class="btn-mark" onclick="toggleMark()">Mark for Review</button>
+        <button class="btn-save" onclick="saveAndNext()">Save & Next</button>
+        <button class="btn-submit" onclick="confirmSubmit()">Submit</button>
+      </div>
+
+      <div class="proctor">
+        Proctoring ON: fullscreen + tab switch monitoring. Avoid leaving test screen.
+      </div>
     </div>
 
-    <div class="qno">Question Palette</div>
-    <div class="palette" id="palette"></div>
+    <div class="palette">
+      <div class="legend">
+        <div class="chip"><div class="box nv"></div>Not Visited</div>
+        <div class="chip"><div class="box na"></div>Not Answered</div>
+        <div class="chip"><div class="box ans"></div>Answered</div>
+        <div class="chip"><div class="box mark"></div>Marked</div>
+        <div class="chip"><div class="box am"></div>Answered & Marked</div>
+      </div>
 
-    <div class="submitBox">
-      <div class="small">Tip: Answered = Green, Marked = Purple, Answered+Marked = Mixed.</div>
+      <div class="palTitle">Question Palette</div>
+      <div class="grid" id="palette"></div>
     </div>
   </div>
-</div>
+
+  <!-- IMPORTANT ORDER -->
+  <script src="questions.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
