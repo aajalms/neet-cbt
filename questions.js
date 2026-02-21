@@ -5,7 +5,7 @@ window.questions = [
     q: "CXR shows sharp visceral pleural line with absent peripheral lung markings. Diagnosis?",
     options: ["Pulmonary edema", "Massive pleural effusion", "Tension pneumothorax", "Lung collapse"],
     correct: 2,
-    image: "" // example: "images/q1.jpg"
+    image: "images/IMG_9833.jpg"
   },
   {
     q: "CT shows both kidneys fused at lower poles anterior to aorta. Diagnosis?",
