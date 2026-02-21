@@ -1,47 +1,36 @@
-/* =========================
-   NEET PG CBT - script.js
-   questions.js must define: window.questions = [...]
-========================= */
+// script.js
 
-// --------- Settings ----------
 const MARKS_CORRECT = 4;
-const NEGATIVE_MARKS = 1;           // Negative marking ON (-1)
-const TEST_DURATION_SEC = 210 * 60; // 3h30m (209:59)
+const NEGATIVE_MARKS = 1;
+const TEST_DURATION_SEC = 210 * 60; // 3h30m = 210 minutes
 
-// --------- Guard ----------
-if (!window.questions || !Array.isArray(window.questions)) {
-  alert("❌ questions.js NOT loaded.\n\nFix:\n1) index.html must load questions.js BEFORE script.js\n2) filename must be exactly questions.js\n3) clear cache / change ?v=1001");
+// Check questions loaded
+if (!window.questions || !Array.isArray(window.questions) || window.questions.length === 0) {
+  alert("❌ questions.js NOT loaded.\n\nFix:\n1) index.html must include questions.js BEFORE script.js\n2) filename must be exactly questions.js\n3) Both files must be in same folder (root)\n4) Clear cache / change ?v=999");
   throw new Error("questions.js not loaded");
 }
 
 const questions = window.questions;
 
-// --------- Storage helpers ----------
-function save(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
-function load(key, fallback) {
-  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
-  catch { return fallback; }
-}
-
-// --------- State ----------
+// State
 let currentIndex = 0;
 let violations = load("violations", 0);
 let timeLeft = load("timeLeft", TEST_DURATION_SEC);
 
-// Per question state
+// status: unseen/seen/answered/review
 let state = load("cbtState", null);
 if (!state || state.length !== questions.length) {
   state = questions.map(() => ({ status: "unseen", selected: null }));
   save("cbtState", state);
 }
 
-// --------- DOM ----------
+// DOM
 const qno = document.getElementById("qno");
 const qtext = document.getElementById("qtext");
 const optionsDiv = document.getElementById("options");
 const qimg = document.getElementById("qimg");
-const palGrid = document.getElementById("palGrid");
 
+const palGrid = document.getElementById("palGrid");
 const timerEl = document.getElementById("timer");
 const violEl = document.getElementById("violations");
 
@@ -58,7 +47,7 @@ const imgModal = document.getElementById("imgModal");
 const imgModalPic = document.getElementById("imgModalPic");
 const imgClose = document.getElementById("imgClose");
 
-// --------- Watermark ----------
+// Watermark name
 const studentName =
   localStorage.getItem("studentName") ||
   localStorage.getItem("candidateName") ||
@@ -66,12 +55,10 @@ const studentName =
 
 watermark.textContent = `${studentName}\nNEET PG CBT`;
 
-// --------- Prevent right-click (basic) ----------
+// Prevent right click
 document.addEventListener("contextmenu", (e) => e.preventDefault());
 
-// --------- Violations (tab switch) ----------
-violEl.textContent = String(violations);
-
+// Basic tab-switch violation
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) addViolation("Tab switched");
 });
@@ -88,9 +75,10 @@ function addViolation(reason) {
   }
 }
 
-// --------- Timer ----------
-timerEl.textContent = formatTime(timeLeft);
+violEl.textContent = String(violations);
 
+// Timer
+timerEl.textContent = formatTime(timeLeft);
 setInterval(() => {
   timeLeft -= 1;
   if (timeLeft < 0) timeLeft = 0;
@@ -103,29 +91,13 @@ setInterval(() => {
   }
 }, 1000);
 
-// --------- Image viewer ----------
-function openImageViewer(src) {
-  imgModalPic.src = src;
-  imgModal.style.display = "block";
-  document.body.style.overflow = "hidden";
-}
-function closeImageViewer() {
-  imgModal.style.display = "none";
-  imgModalPic.src = "";
-  document.body.style.overflow = "";
-}
-imgClose.addEventListener("click", closeImageViewer);
-imgModal.addEventListener("click", (e) => { if (e.target === imgModal) closeImageViewer(); });
-document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeImageViewer(); });
-
-// --------- Buttons ----------
+// Buttons
 prevBtn.addEventListener("click", () => goTo(currentIndex - 1));
 nextBtn.addEventListener("click", () => goTo(currentIndex + 1));
 
 clearBtn.addEventListener("click", () => {
-  const st = state[currentIndex];
-  st.selected = null;
-  if (st.status === "answered") st.status = "seen";
+  state[currentIndex].selected = null;
+  if (state[currentIndex].status === "answered") state[currentIndex].status = "seen";
   save("cbtState", state);
   buildPalette();
   renderQuestion(currentIndex);
@@ -147,11 +119,25 @@ submitBtn.addEventListener("click", () => {
   if (confirm("Submit test now?")) submitTest();
 });
 
-// --------- Render ----------
+// Image viewer
+function openImageViewer(src) {
+  imgModalPic.src = src;
+  imgModal.style.display = "block";
+  document.body.style.overflow = "hidden";
+}
+function closeImageViewer() {
+  imgModal.style.display = "none";
+  imgModalPic.src = "";
+  document.body.style.overflow = "";
+}
+imgClose.addEventListener("click", closeImageViewer);
+imgModal.addEventListener("click", (e) => { if (e.target === imgModal) closeImageViewer(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeImageViewer(); });
+
+// Render
 buildPalette();
 renderQuestion(0);
 
-// --------- Functions ----------
 function renderQuestion(i) {
   currentIndex = clamp(i, 0, questions.length - 1);
 
@@ -164,7 +150,7 @@ function renderQuestion(i) {
   qno.textContent = `Question ${currentIndex + 1}.`;
   qtext.textContent = q.q;
 
-  // image
+  // Image
   if (q.image && String(q.image).trim() !== "") {
     qimg.style.display = "block";
     qimg.src = q.image;
@@ -175,10 +161,11 @@ function renderQuestion(i) {
     qimg.onclick = null;
   }
 
-  // options
+  // Options
   optionsDiv.innerHTML = "";
   q.options.forEach((opt, idx) => {
     const id = `opt_${currentIndex}_${idx}`;
+
     const label = document.createElement("label");
     label.setAttribute("for", id);
 
@@ -205,7 +192,6 @@ function renderQuestion(i) {
 
 function buildPalette() {
   palGrid.innerHTML = "";
-
   state.forEach((st, idx) => {
     const btn = document.createElement("button");
     btn.textContent = String(idx + 1);
@@ -214,9 +200,72 @@ function buildPalette() {
     if (st.status === "seen") btn.className = "pal-seen";
     if (st.status === "answered") btn.className = "pal-answered";
     if (st.status === "review") btn.className = "pal-review";
-
     if (idx === currentIndex) btn.classList.add("pal-current");
 
     btn.addEventListener("click", () => renderQuestion(idx));
     palGrid.appendChild(btn);
- 
+  });
+}
+
+function goTo(i) {
+  if (i < 0 || i >= questions.length) return;
+  renderQuestion(i);
+}
+
+function submitTest() {
+  let correct = 0, wrong = 0, unattempted = 0;
+
+  state.forEach((st, idx) => {
+    const sel = st.selected;
+    if (sel === null || sel === undefined) {
+      unattempted += 1;
+    } else if (sel === questions[idx].correct) {
+      correct += 1;
+    } else {
+      wrong += 1;
+    }
+  });
+
+  const score = (correct * MARKS_CORRECT) - (wrong * NEGATIVE_MARKS);
+  const total = questions.length * MARKS_CORRECT;
+
+  const result = {
+    studentName,
+    correct,
+    wrong,
+    unattempted,
+    score,
+    total,
+    timeLeft,
+    submittedAt: new Date().toISOString(),
+    answers: state.map((s) => s.selected),
+  };
+
+  save("result", result);
+
+  alert(
+    `✅ Submitted!\n\nCorrect: ${correct}\nWrong: ${wrong}\nUnattempted: ${unattempted}\n\nScore: ${score} / ${total}`
+  );
+}
+
+function formatTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
+function clamp(n, min, max) {
+  return Math.max(min, Math.min(max, n));
+}
+
+function save(key, value) {
+  localStorage.setItem(key, JSON.stringify(value));
+}
+function load(key, fallback) {
+  try {
+    const v = localStorage.getItem(key);
+    return v ? JSON.parse(v) : fallback;
+  } catch {
+    return fallback;
+  }
+}
