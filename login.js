@@ -1,48 +1,56 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+/***********************
+ LOGIN -> Apps Script -> token stored in localStorage
+***********************/
 
-/* 🔥 FIREBASE CONFIG */
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-};
+// ✅ PASTE your Apps Script Web App URL here:
+const API_URL = "PASTE_YOUR_WEB_APP_URL_HERE";
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+const msg = document.getElementById("msg");
 
-let isAdmin = false;
+function setMsg(text, ok=false){
+  msg.textContent = text;
+  msg.className = ok ? "msg ok" : "msg";
+}
 
-/* 🔄 TOGGLE LOGIN TYPE */
-window.toggleLogin = function () {
-  isAdmin = !isAdmin;
-  document.getElementById("title").innerText = isAdmin ? "Admin Login" : "Student Login";
-  document.getElementById("roll").style.display = isAdmin ? "none" : "block";
-  document.getElementById("email").style.display = isAdmin ? "block" : "none";
-};
+function safeJsonParse(str){
+  try { return JSON.parse(str); } catch { return null; }
+}
 
-/* 🔐 LOGIN */
-window.login = async function () {
-  const password = document.getElementById("password").value;
+// If already logged in, go to exam directly
+const existing = safeJsonParse(localStorage.getItem("neet_candidate") || "");
+if (existing && existing.token && existing.id) {
+  window.location.href = "index.html";
+}
 
-  try {
-    if (isAdmin) {
-      const email = document.getElementById("email").value;
-      await signInWithEmailAndPassword(auth, email, password);
-      location.href = "admin.html";
+document.getElementById("loginBtn").addEventListener("click", async () => {
+  const id = document.getElementById("cid").value.trim();
+  const password = document.getElementById("pwd").value.trim();
 
-    } else {
-      const roll = document.getElementById("roll").value;
-      const fakeEmail = roll + "@neetpg.local";
+  if (!id || !password) return setMsg("Enter Candidate ID and Password.");
 
-      await signInWithEmailAndPassword(auth, fakeEmail, password);
+  setMsg("Checking...", true);
 
-      // Save roll locally
-      sessionStorage.setItem("rollNo", roll);
-      location.href = "index.html";
-    }
+  try{
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ action:"login", id, password })
+    });
 
-  } catch (e) {
-    alert("Login failed");
+    const data = await res.json();
+
+    if (!data.ok) return setMsg(data.error || "Login failed");
+
+    localStorage.setItem("neet_candidate", JSON.stringify({
+      id: data.id,
+      name: data.name || "",
+      token: data.token,
+      loginAt: new Date().toISOString()
+    }));
+
+    setMsg("Login success. Redirecting...", true);
+    window.location.href = "index.html";
+  } catch(e){
+    setMsg("Network error: " + e);
   }
-};
+});
