@@ -1,257 +1,303 @@
-// script.js (TOP)
-if (typeof questions === "undefined" || !Array.isArray(questions)) {
-  alert("ERROR: questions.js not loaded!\n\nCheck:\n1) file name is exactly questions.js\n2) same folder as index.html\n3) committed to GitHub\n4) case-sensitive on GitHub Pages");
-  throw new Error("questions.js not loaded");
-}
-
 // ===== SETTINGS =====
-const TEST_DURATION_SECONDS = 180 * 60; // 3 hours
-const STORAGE_KEY = "neet_cbt_state_v1";
+const TEST_DURATION_MIN = 180;
+const MARK_CORRECT = 4;
+const MARK_WRONG = -1;
+const MARK_UNATTEMPTED = 0;
+
+const MAX_VIOLATIONS = 3; // Auto-submit after this
+// Paste your Apps Script Web App URL here (after deploying)
+const GOOGLE_SHEET_WEBAPP_URL = ""; // e.g. "https://script.google.com/macros/s/XXXX/exec"
 
 // ===== STATE =====
-let state = {
-  currentIndex: 0,
-  timeLeft: TEST_DURATION_SECONDS,
-  // per question:
-  // visited: boolean
-  // marked: boolean
-  // selected: number | null
-  visited: Array(questions.length).fill(false),
-  marked: Array(questions.length).fill(false),
-  selected: Array(questions.length).fill(null),
-  submitted: false,
-};
+let state = null;
+let userAnswers = [];
+let marked = [];
+let visited = [];
+let currentIndex = 0;
+let timerInterval = null;
 
-// ===== LOAD/SAVE =====
-function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
-function loadState() {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) return;
-  try {
-    const parsed = JSON.parse(raw);
-    // basic validation
-    if (parsed && parsed.selected && parsed.selected.length === questions.length) {
-      state = parsed;
-    }
-  } catch (e) {}
-}
+// ===== INIT =====
+(function init(){
+  const cand = JSON.parse(localStorage.getItem("candidate") || "null");
+  if(!cand){ location.href="login.html"; return; }
 
-// ===== TIMER =====
-let timerHandle = null;
-function formatTime(sec) {
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
-  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-}
-function startTimer() {
-  const timerEl = document.getElementById("timer");
-  timerEl.textContent = formatTime(state.timeLeft);
+  state = JSON.parse(localStorage.getItem("cbt_state") || "null");
+  if(!state){ location.href="instructions.html"; return; }
 
-  timerHandle = setInterval(() => {
-    if (state.submitted) return;
+  const n = questions.length;
+  userAnswers = (state.answers && state.answers.length) ? state.answers : Array(n).fill(null);
+  marked = (state.marked && state.marked.length) ? state.marked : Array(n).fill(false);
+  visited = (state.visited && state.visited.length) ? state.visited : Array(n).fill(false);
+  currentIndex = state.currentIndex || 0;
 
-    state.timeLeft--;
-    if (state.timeLeft < 0) {
-      state.timeLeft = 0;
-      timerEl.textContent = formatTime(0);
-      clearInterval(timerHandle);
-      submitTest(true);
-      return;
-    }
-    timerEl.textContent = formatTime(state.timeLeft);
-    saveState();
-  }, 1000);
-}
-
-// ===== UI RENDER =====
-function getStatus(i) {
-  // status logic:
-  // Not Visited: !visited
-  // Not Answered: visited && selected == null && !marked
-  // Marked: marked && selected == null
-  // Answered: selected != null && !marked
-  // Answered & Marked: selected != null && marked
-  if (!state.visited[i]) return "notVisited";
-  const sel = state.selected[i];
-  const mk = state.marked[i];
-  if (sel === null && mk) return "marked";
-  if (sel === null && !mk) return "notAnswered";
-  if (sel !== null && mk) return "answeredMarked";
-  return "answered";
-}
-
-function renderPalette() {
-  const pal = document.getElementById("palette");
-  pal.innerHTML = "";
-
-  for (let i = 0; i < questions.length; i++) {
-    const btn = document.createElement("button");
-    btn.className = `pbtn ${getStatus(i)} ${i === state.currentIndex ? "current" : ""}`;
-    btn.textContent = i + 1;
-    btn.onclick = () => {
-      goToQuestion(i);
-    };
-    pal.appendChild(btn);
+  if(!state.timeLeftSec || state.timeLeftSec > TEST_DURATION_MIN*60){
+    state.timeLeftSec = TEST_DURATION_MIN * 60;
   }
-}
 
-function renderQuestion() {
-  const i = state.currentIndex;
-  const q = questions[i];
+  // Prevent back (best possible)
+  history.pushState(null, "", location.href);
+  window.addEventListener("popstate", ()=> history.pushState(null, "", location.href));
 
-  // mark visited
-  state.visited[i] = true;
+  // Render
+  renderQuestion();
+  renderPalette();
+  updateViolationsUI();
 
-  document.getElementById("qno").textContent = `Question ${i + 1} of ${questions.length}`;
-  document.getElementById("qtext").textContent = q.question;
+  // Timer
+  startTimer();
+
+  // Proctoring
+  enableProctoring();
+
+  // Auto-save state
+  setInterval(saveState, 1500);
+})();
+
+// ===== RENDER =====
+function renderQuestion(){
+  const q = questions[currentIndex];
+  visited[currentIndex] = true;
+
+  document.getElementById("qno").innerText = currentIndex + 1;
+  document.getElementById("qtext").innerText = q.q;
 
   const optWrap = document.getElementById("options");
   optWrap.innerHTML = "";
 
-  q.options.forEach((opt, idx) => {
+  q.options.forEach((op, idx)=>{
     const label = document.createElement("label");
-    const radio = document.createElement("input");
-    radio.type = "radio";
-    radio.name = "option";
-    radio.value = idx;
-
-    if (state.selected[i] === idx) radio.checked = true;
-
-    radio.onchange = () => {
-      state.selected[i] = idx;
-      saveState();
+    label.className = "opt";
+    label.innerHTML = `
+      <input type="radio" name="opt" value="${idx}" ${userAnswers[currentIndex]===idx ? "checked":""}/>
+      <b>${String.fromCharCode(65+idx)}.</b> ${op}
+    `;
+    label.addEventListener("click", ()=>{
+      userAnswers[currentIndex] = idx;
       renderPalette();
-      renderStatusLine();
-    };
-
-    label.appendChild(radio);
-    label.appendChild(document.createTextNode(`${String.fromCharCode(65 + idx)}. ${opt}`));
+      saveState();
+    });
     optWrap.appendChild(label);
   });
 
   renderPalette();
-  renderStatusLine();
   saveState();
 }
 
-function renderStatusLine() {
-  const el = document.getElementById("statusLine");
-  const i = state.currentIndex;
+function renderPalette(){
+  const pal = document.getElementById("palette");
+  pal.innerHTML = "";
 
-  const mk = state.marked[i] ? "Marked" : "Not Marked";
-  const sel = state.selected[i] === null ? "Not Answered" : `Answered (Option ${String.fromCharCode(65 + state.selected[i])})`;
-  el.textContent = `${sel} • ${mk}`;
-}
+  questions.forEach((_, i)=>{
+    const b = document.createElement("button");
+    b.className = "qbtn";
+    b.textContent = i + 1;
 
-function goToQuestion(i) {
-  state.currentIndex = i;
-  renderQuestion();
-}
+    const ans = (userAnswers[i] !== null && userAnswers[i] !== undefined);
+    const vis = visited[i];
+    const m = !!marked[i];
 
-function nextQuestion() {
-  if (state.currentIndex < questions.length - 1) {
-    state.currentIndex++;
-    renderQuestion();
-  }
-}
+    if(!vis){
+      b.style.background = "#bdbdbd"; // Not visited
+    } else if(ans && m){
+      b.style.background = "linear-gradient(135deg,#27ae60 50%,#8e44ad 50%)"; // Answered+Marked
+    } else if(m){
+      b.style.background = "#8e44ad"; // Marked
+    } else if(ans){
+      b.style.background = "#27ae60"; // Answered
+    } else {
+      b.style.background = "#e74c3c"; // Not answered
+    }
 
-function prevQuestion() {
-  if (state.currentIndex > 0) {
-    state.currentIndex--;
-    renderQuestion();
-  }
-}
-
-// ===== ACTIONS =====
-function clearResponse() {
-  const i = state.currentIndex;
-  state.selected[i] = null;
-  saveState();
-  renderQuestion();
-}
-
-function toggleMarkForReview() {
-  const i = state.currentIndex;
-  state.marked[i] = !state.marked[i];
-  saveState();
-  renderPalette();
-  renderStatusLine();
-}
-
-function saveAndNext() {
-  // selection already stored on change
-  nextQuestion();
-}
-
-function computeSummary() {
-  let notVisited = 0, notAnswered = 0, answered = 0, marked = 0, answeredMarked = 0;
-
-  for (let i = 0; i < questions.length; i++) {
-    const st = getStatus(i);
-    if (st === "notVisited") notVisited++;
-    else if (st === "notAnswered") notAnswered++;
-    else if (st === "answered") answered++;
-    else if (st === "marked") marked++;
-    else if (st === "answeredMarked") answeredMarked++;
-  }
-  return { notVisited, notAnswered, answered, marked, answeredMarked };
-}
-
-function submitTest(auto = false) {
-  if (state.submitted) return;
-
-  const sum = computeSummary();
-  const msg =
-    `Confirm Submit?\n\n` +
-    `Answered: ${sum.answered}\n` +
-    `Marked: ${sum.marked}\n` +
-    `Answered & Marked: ${sum.answeredMarked}\n` +
-    `Not Answered: ${sum.notAnswered}\n` +
-    `Not Visited: ${sum.notVisited}\n\n` +
-    (auto ? `Time is up. Test will be auto-submitted.` : ``);
-
-  if (!auto) {
-    const ok = confirm(msg);
-    if (!ok) return;
-  }
-
-  // score (no negative as per your message; can be changed)
-  let score = 0;
-  for (let i = 0; i < questions.length; i++) {
-    if (state.selected[i] === questions[i].answer) score += 4;
-  }
-
-  state.submitted = true;
-  saveState();
-  clearInterval(timerHandle);
-
-  alert(`Test Submitted!\n\nScore: ${score} / ${questions.length * 4}`);
-  // You can redirect to result.html if you have it:
-  // window.location.href = "result.html";
-}
-
-// ===== INIT =====
-function init() {
-  loadState();
-
-  document.getElementById("btnPrev").onclick = prevQuestion;
-  document.getElementById("btnClear").onclick = clearResponse;
-  document.getElementById("btnMark").onclick = toggleMarkForReview;
-  document.getElementById("btnSaveNext").onclick = saveAndNext;
-  document.getElementById("btnSubmit").onclick = () => submitTest(false);
-
-  // if already submitted, block interactions but allow view
-  renderQuestion();
-  startTimer();
-
-  // keyboard shortcuts (optional)
-  document.addEventListener("keydown", (e) => {
-    if (state.submitted) return;
-    if (e.key === "ArrowRight") nextQuestion();
-    if (e.key === "ArrowLeft") prevQuestion();
+    if(i === currentIndex) b.classList.add("current");
+    b.onclick = ()=> { currentIndex = i; state.currentIndex = i; renderQuestion(); };
+    pal.appendChild(b);
   });
 }
 
-init();
+// ===== NAVIGATION =====
+function prevQ(){
+  if(currentIndex > 0){
+    currentIndex--;
+    state.currentIndex = currentIndex;
+    renderQuestion();
+  }
+}
+
+function saveAndNext(){
+  if(currentIndex < questions.length - 1){
+    currentIndex++;
+    state.currentIndex = currentIndex;
+    renderQuestion();
+  } else {
+    alert("Last question reached. You can submit now.");
+  }
+}
+
+function clearResponse(){
+  userAnswers[currentIndex] = null;
+  renderQuestion();
+}
+
+function toggleMark(){
+  marked[currentIndex] = !marked[currentIndex];
+  renderPalette();
+  saveState();
+}
+
+// ===== TIMER =====
+function startTimer(){
+  clearInterval(timerInterval);
+  timerInterval = setInterval(()=>{
+    if(state.submitted) return;
+    state.timeLeftSec--;
+    if(state.timeLeftSec <= 0){
+      state.timeLeftSec = 0;
+      updateTimerUI();
+      submitTest("TIME_OVER");
+      return;
+    }
+    updateTimerUI();
+  }, 1000);
+
+  updateTimerUI();
+}
+
+function updateTimerUI(){
+  const t = state.timeLeftSec;
+  const mm = String(Math.floor(t/60)).padStart(2,"0");
+  const ss = String(t%60).padStart(2,"0");
+  document.getElementById("timer").innerText = `${mm}:${ss}`;
+}
+
+// ===== SCORING (+4, -1, 0) =====
+function calculateScore(){
+  let correct=0, wrong=0, unattempted=0;
+
+  questions.forEach((q,i)=>{
+    const sel = userAnswers[i];
+    if(sel === null || sel === undefined){
+      unattempted++;
+    } else if(sel === q.answer){
+      correct++;
+    } else {
+      wrong++;
+    }
+  });
+
+  const score = (correct*MARK_CORRECT) + (wrong*MARK_WRONG) + (unattempted*MARK_UNATTEMPTED);
+  return {score, correct, wrong, unattempted};
+}
+
+// ===== SUBMIT =====
+function confirmSubmit(){
+  if(confirm("Submit test now?")){
+    submitTest("MANUAL");
+  }
+}
+
+async function submitTest(reason){
+  if(state.submitted) return;
+  state.submitted = true;
+
+  const cand = JSON.parse(localStorage.getItem("candidate") || "null");
+  const result = calculateScore();
+
+  const payload = {
+    candidateName: cand?.name || "",
+    rollNo: cand?.roll || "",
+    totalQuestions: questions.length,
+    correct: result.correct,
+    wrong: result.wrong,
+    unattempted: result.unattempted,
+    score: result.score,
+    violations: state.violations || 0,
+    reason,
+    submittedAt: Date.now(),
+    answers: userAnswers
+  };
+
+  localStorage.setItem("result", JSON.stringify(payload));
+  localStorage.setItem("userAnswers", JSON.stringify(userAnswers));
+
+  saveState();
+
+  // Save to Google Sheet (Apps Script Web App)
+  if(GOOGLE_SHEET_WEBAPP_URL && GOOGLE_SHEET_WEBAPP_URL.startsWith("https://")){
+    try{
+      await fetch(GOOGLE_SHEET_WEBAPP_URL, {
+        method: "POST",
+        headers: {"Content-Type":"text/plain;charset=utf-8"},
+        body: JSON.stringify(payload)
+      });
+    }catch(e){
+      // ignore
+    }
+  }
+
+  location.href = "result.html";
+}
+
+function saveState(){
+  state.answers = userAnswers;
+  state.marked = marked;
+  state.visited = visited;
+  state.currentIndex = currentIndex;
+  localStorage.setItem("cbt_state", JSON.stringify(state));
+}
+
+// ===== PROCTORING =====
+function enableProctoring(){
+  // Try fullscreen on first click
+  document.addEventListener("click", tryFullscreenOnce, {once:true});
+
+  document.addEventListener("visibilitychange", ()=>{
+    if(document.hidden) addViolation("TAB_SWITCH");
+  });
+
+  window.addEventListener("blur", ()=> addViolation("WINDOW_BLUR"));
+
+  // Right click block
+  document.addEventListener("contextmenu", (e)=> e.preventDefault());
+
+  // Devtools shortcuts block (not perfect)
+  document.addEventListener("keydown", (e)=>{
+    const k = e.key.toLowerCase();
+    if(e.key === "F12" || (e.ctrlKey && e.shiftKey && (k==="i" || k==="j" || k==="c")) || (e.ctrlKey && k==="u")){
+      e.preventDefault();
+      addViolation("DEVTOOLS_SHORTCUT");
+    }
+  });
+
+  // Fullscreen exit
+  document.addEventListener("fullscreenchange", ()=>{
+    if(!document.fullscreenElement){
+      addViolation("EXIT_FULLSCREEN");
+    }
+  });
+}
+
+function tryFullscreenOnce(){
+  const el = document.documentElement;
+  if(el.requestFullscreen){
+    el.requestFullscreen().catch(()=>{});
+  }
+}
+
+function addViolation(type){
+  if(state.submitted) return;
+  state.violations = (state.violations || 0) + 1;
+  updateViolationsUI();
+  saveState();
+
+  alert(`Proctoring violation: ${type}\nViolations: ${state.violations}/${MAX_VIOLATIONS}`);
+
+  if(state.violations >= MAX_VIOLATIONS){
+    submitTest("AUTO_SUBMIT_VIOLATIONS");
+  }
+}
+
+function updateViolationsUI(){
+  const v = state.violations || 0;
+  const el = document.getElementById("viol");
+  if(el) el.innerText = v;
+}
