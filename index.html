@@ -45,7 +45,6 @@
     .chip { display:flex; align-items:center; gap:8px; font-size:13px; }
     .dot { width:14px; height:14px; border-radius:3px; display:inline-block; }
 
-    /* Palette colors (NEET-like) */
     .notVisited { background:#b0b0b0; }
     .notAnswered { background:#e74c3c; }
     .answered { background:#27ae60; }
@@ -59,13 +58,14 @@
       color:#fff; font-weight:800; cursor:pointer;
     }
 
-    .topbar {
-      display:flex; justify-content:space-between; align-items:center;
-      margin-bottom:10px;
-    }
+    .topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
     .submitBox { margin-top:14px; padding-top:12px; border-top:1px solid #d7d7d7; }
     .small { font-size:12px; opacity:0.9; }
   </style>
+
+  <!-- IMPORTANT: defer loads in order and after parsing HTML -->
+  <script defer src="questions.js"></script>
+  <script defer src="script.js"></script>
 </head>
 
 <body>
@@ -84,8 +84,7 @@
       <div class="small">Marking: +4 / 0 (customizable)</div>
     </div>
 
-    <div class="qtext" id="qtext"></div>
-
+    <div class="qtext" id="qtext">Loading...</div>
     <div class="options" id="options"></div>
 
     <div class="controls">
@@ -111,14 +110,9 @@
     <div class="palette" id="palette"></div>
 
     <div class="submitBox">
-      <div class="small">
-        Tip: Answered = Green, Marked = Purple, Answered+Marked = Mixed.
-      </div>
+      <div class="small">Tip: Answered = Green, Marked = Purple, Answered+Marked = Mixed.</div>
     </div>
   </div>
 </div>
-
-<script src="questions.js"></script>
-<script src="script.js"></script>
 </body>
 </html>
