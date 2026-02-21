@@ -1,368 +1,416 @@
 // questions.js
-// IMPORTANT: keep this file name EXACTLY as "questions.js"
-
 const questions = [
   {
-    q: "CXR shows sharp visceral pleural line with absent peripheral lung markings. Diagnosis?",
-    options: ["Pulmonary edema", "Massive pleural effusion", "Tension pneumothorax", "Lung collapse"],
-    correct: 2,
-    image: ""
+    question:
+      "A patient presents to the emergency department with acute respiratory distress. The chest X-ray image shows a sharp white line along the lateral chest wall with absence of lung markings beyond it. What is the MOST LIKELY diagnosis?",
+    options: [
+      "Pulmonary edema",
+      "Massive pleural effusion",
+      "Tension pneumothorax",
+      "Lung collapse with consolidation",
+    ],
+    answer: 2,
   },
   {
-    q: "CT shows both kidneys fused at lower poles anterior to aorta. Diagnosis?",
-    options: ["Polycystic kidney disease", "Crossed fused ectopia", "Horseshoe kidney", "Renal agenesis"],
-    correct: 2,
-    image: ""
+    question:
+      "A CT scan of the abdomen done for abdominal pain shows both kidneys located lower than normal and fused at their lower poles across the midline, anterior to the aorta. What is the diagnosis?",
+    options: [
+      "Polycystic kidney disease",
+      "Crossed fused renal ectopia",
+      "Horseshoe kidney",
+      "Renal agenesis",
+    ],
+    answer: 2,
   },
   {
-    q: "Gold standard imaging for cerebral aneurysm?",
-    options: ["CT angiography", "MR angiography", "Digital subtraction angiography", "PET scan"],
-    correct: 2,
-    image: ""
+    question:
+      "A bone-free angiographic image shows a rounded contrast-filled outpouching arising from a cerebral artery. The patient had subarachnoid hemorrhage. Which imaging modality is shown and what is the treatment?",
+    options: [
+      "CT angiography – surgical clipping",
+      "MR angiography – thrombolysis",
+      "Digital subtraction angiography – endovascular coiling",
+      "PET scan – radiotherapy",
+    ],
+    answer: 2,
   },
   {
-    q: "Skull X-ray with punched-out lesions indicates?",
-    options: ["Paget disease", "Metastasis", "Multiple myeloma", "Osteoporosis"],
-    correct: 2,
-    image: ""
+    question:
+      "An elderly patient presents with chronic backache. The lateral skull X-ray shows multiple well-defined punched-out radiolucent lesions giving a “raindrop” appearance. What is the MOST LIKELY diagnosis?",
+    options: [
+      "Paget disease of bone",
+      "Metastatic carcinoma",
+      "Multiple myeloma",
+      "Osteoporosis",
+    ],
+    answer: 2,
   },
   {
-    q: "CT showing bulky pancreas with fat stranding suggests?",
-    options: ["Carcinoma", "Chronic pancreatitis", "Acute pancreatitis", "Pseudocyst"],
-    correct: 2,
-    image: ""
+    question:
+      "A patient presents with severe epigastric pain radiating to the back. CT abdomen shows an enlarged pancreas with surrounding fat stranding and inflammatory changes. What is the diagnosis?",
+    options: [
+      "Pancreatic carcinoma",
+      "Chronic pancreatitis",
+      "Acute pancreatitis",
+      "Pancreatic pseudocyst",
+    ],
+    answer: 2,
   },
   {
-    q: "Sagittal MRI knee shows torn ligament from femur to tibia. Structure?",
-    options: ["PCL", "MCL", "ACL", "Meniscus"],
-    correct: 2,
-    image: ""
+    question:
+      "MRI of the knee shows disruption and abnormal signal intensity of a ligament extending from the femur to the tibia. Which structure is injured?",
+    options: [
+      "Posterior cruciate ligament",
+      "Medial collateral ligament",
+      "Anterior cruciate ligament",
+      "Meniscus",
+    ],
+    answer: 2,
   },
   {
-    q: "Boot-shaped heart on CXR indicates?",
-    options: ["TGA", "VSD", "Eisenmenger", "Tetralogy of Fallot"],
-    correct: 3,
-    image: ""
+    question:
+      "A chest X-ray of a child with cyanotic spells shows a heart shaped like a boot with decreased pulmonary vascular markings. What is the MOST LIKELY diagnosis?",
+    options: [
+      "Transposition of great arteries",
+      "Ventricular septal defect",
+      "Eisenmenger syndrome",
+      "Tetralogy of Fallot",
+    ],
+    answer: 3,
   },
   {
-    q: "Cobra head sign on IVP indicates?",
-    options: ["VUR", "Posterior urethral valve", "Ureterocele", "PUJ obstruction"],
-    correct: 2,
-    image: ""
+    question:
+      "The radiological appearance shown in the IVP image is best described as adder head (cobra head) appearance. This finding is most commonly associated with which condition?",
+    options: [
+      "Vesicoureteral reflux",
+      "Posterior urethral valve",
+      "Ureterocele",
+      "PUJ obstruction",
+    ],
+    answer: 2,
   },
   {
-    q: "Bunch of grapes appearance on HRCT suggests?",
-    options: ["Emphysema", "Cystic bronchiectasis", "TB", "Honeycombing"],
-    correct: 1,
-    image: ""
+    question:
+      "The “bunch of grapes” appearance seen on HRCT chest is characteristic of:",
+    options: [
+      "Pulmonary emphysema",
+      "Cystic bronchiectasis",
+      "Pulmonary tuberculosis",
+      "Honeycombing fibrosis",
+    ],
+    answer: 1,
   },
   {
-    q: "Crazy paving sign classically seen in?",
-    options: ["Pulmonary edema", "Sarcoidosis", "Alveolar proteinosis", "Carcinoma"],
-    correct: 2,
-    image: ""
+    question:
+      "Crazy paving pattern on HRCT chest is most classically associated with:",
+    options: [
+      "Pulmonary edema",
+      "Sarcoidosis",
+      "Alveolar proteinosis",
+      "Lung carcinoma",
+    ],
+    answer: 2,
   },
   {
-    q: "Drooping lily sign indicates?",
-    options: ["Renal agenesis", "PUJ obstruction", "Duplex kidney", "Medullary sponge kidney"],
-    correct: 2,
-    image: ""
+    question:
+      "The radiological appearance shown (Rugger jersey spine) is most classically associated with:",
+    options: [
+      "Osteoporosis",
+      "Ankylosing spondylitis",
+      "Secondary hyperparathyroidism",
+      "Multiple myeloma",
+    ],
+    answer: 2,
   },
   {
-    q: "Rugger jersey spine seen in?",
-    options: ["Osteoporosis", "Ankylosing spondylitis", "Secondary hyperparathyroidism", "Myeloma"],
-    correct: 2,
-    image: ""
+    question:
+      "The metaphyseal beak-like projection (Pelkan spur) shown is characteristic of:",
+    options: ["Rickets", "Scurvy", "Osteogenesis imperfecta", "Osteomalacia"],
+    answer: 1,
   },
   {
-    q: "Pelkan spur seen in?",
-    options: ["Rickets", "Scurvy", "OI", "Osteomalacia"],
-    correct: 1,
-    image: ""
+    question:
+      "Ground-glass appearance in bone X-ray is most characteristic of:",
+    options: [
+      "Osteosarcoma",
+      "Fibrous dysplasia",
+      "Paget disease",
+      "Hyperparathyroidism",
+    ],
+    answer: 1,
   },
   {
-    q: "Ground glass bone appearance seen in?",
-    options: ["Osteosarcoma", "Fibrous dysplasia", "Paget disease", "Hyperparathyroidism"],
-    correct: 1,
-    image: ""
-  },
-  {
-    q: "Dural tail sign indicates?",
+    question: "The imaging finding shown (dural tail sign) is most suggestive of:",
     options: ["Glioblastoma", "Meningioma", "Schwannoma", "Pituitary adenoma"],
-    correct: 1,
-    image: ""
+    answer: 1,
   },
   {
-    q: "Primary amenorrhea with normal breasts and absent uterus. Karyotype?",
-    options: ["45XO", "46XX", "46XY", "47XXX"],
-    correct: 1,
-    image: ""
+    question:
+      "A 16-year-old girl presents with primary amenorrhea. Normal breast development and pubic hair. Short vagina, uterus absent on ultrasound, ovaries present. Most likely karyotype?",
+    options: ["45,XO", "46,XX", "46,XY", "47,XXX"],
+    answer: 1,
   },
   {
-    q: "Continuous GnRH administration causes?",
-    options: ["LH surge", "Ovulation", "Suppression of LH & FSH", "Increased LH"],
-    correct: 2,
-    image: ""
+    question: "Continuous GnRH administration results in:",
+    options: ["Increased LH & FSH", "LH surge", "Suppression of LH & FSH", "Ovulation"],
+    answer: 2,
   },
   {
-    q: "First sign of puberty in girls?",
-    options: ["Menarche", "Thelarche", "Adrenarche", "Growth spurt"],
-    correct: 1,
-    image: ""
+    question: "Which is the correct sequence of pubertal events in girls?",
+    options: [
+      "Menarche → Thelarche → Adrenarche",
+      "Thelarche → Adrenarche → Menarche",
+      "Adrenarche → Thelarche → Menarche",
+      "Menarche → Growth spurt → Thelarche",
+    ],
+    answer: 1,
   },
   {
-    q: "FSH 48 IU/L at age 52 indicates?",
-    options: ["Secondary amenorrhea", "POF", "Menopause", "PCOS"],
-    correct: 2,
-    image: ""
+    question:
+      "A 52-year-old woman has not had menses for 12 months. Her FSH is 48 IU/L. Most appropriate diagnosis?",
+    options: [
+      "Secondary amenorrhea",
+      "Premature ovarian failure",
+      "Menopause",
+      "PCOS",
+    ],
+    answer: 2,
   },
   {
-    q: "Primary hormonal abnormality in PCOS?",
-    options: ["Low LH", "High FSH", "High LH:FSH ratio", "Low androgen"],
-    correct: 2,
-    image: ""
+    question: "Primary hormonal abnormality in PCOS is:",
+    options: ["Decreased LH", "Increased FSH", "Increased LH:FSH ratio", "Low androgen levels"],
+    answer: 2,
   },
   {
-    q: "Most common degeneration of fibroid?",
-    options: ["Red", "Cystic", "Hyaline", "Fatty"],
-    correct: 2,
-    image: ""
+    question:
+      "A 45-year-old woman with fibroid shows homogeneous eosinophilic material replacing smooth muscle cells. Most likely degeneration?",
+    options: ["Red degeneration", "Cystic degeneration", "Hyaline degeneration", "Fatty degeneration"],
+    answer: 2,
   },
   {
-    q: "Uniform enlarged tender uterus in >40 yrs suggests?",
+    question:
+      "A 42-year-old multiparous woman with menorrhagia and dysmenorrhea. Uniformly enlarged tender uterus. USG: venetian blind appearance. Diagnosis?",
     options: ["Fibroid", "Endometriosis", "Adenomyosis", "PID"],
-    correct: 2,
-    image: ""
+    answer: 2,
   },
   {
-    q: "Most accepted theory of endometriosis?",
-    options: ["Metaplasia", "Retrograde menstruation", "Genetic spread", "Vascular spread"],
-    correct: 1,
-    image: ""
+    question: "Most accepted theory explaining pelvic endometriosis is:",
+    options: ["Coelomic metaplasia", "Retrograde menstruation", "Vascular spread", "Genetic mutation"],
+    answer: 1,
   },
   {
-    q: "Most common PID organisms?",
-    options: ["E coli", "TB", "Gonorrhea + Chlamydia", "Actinomyces"],
-    correct: 2,
-    image: ""
+    question: "Most common organisms causing acute PID are:",
+    options: [
+      "E. coli",
+      "Mycobacterium tuberculosis",
+      "Neisseria gonorrhoeae & Chlamydia trachomatis",
+      "Actinomyces",
+    ],
+    answer: 2,
   },
   {
-    q: "Primary dysmenorrhea mechanism?",
-    options: ["Estrogen excess", "Prostaglandin F2α", "Tubal block", "Adenomyosis"],
-    correct: 1,
-    image: ""
+    question:
+      "A 19-year-old girl with primary dysmenorrhea (no pelvic pathology). Mechanism?",
+    options: ["Estrogen excess", "Increased prostaglandin F2α", "Tubal blockage", "Adenomyosis"],
+    answer: 1,
   },
   {
-    q: "Two uterine cavities with normal fundus indicate?",
-    options: ["Didelphys", "Bicornuate", "Septate", "Unicornuate"],
-    correct: 2,
-    image: ""
+    question:
+      "HSG shows two uterine cavities with single cervix and normal external fundal contour. Diagnosis?",
+    options: ["Uterus didelphys", "Bicornuate uterus", "Septate uterus", "Unicornuate uterus"],
+    answer: 2,
   },
   {
-    q: "Best test to confirm ovulation?",
-    options: ["Day 3 FSH", "Day 21 progesterone", "Biopsy", "HSG"],
-    correct: 1,
-    image: ""
+    question: "Best initial test to confirm ovulation in infertility is:",
+    options: ["Serum FSH on day 3", "Serum progesterone day 21", "Endometrial biopsy", "HSG"],
+    answer: 1,
   },
   {
-    q: "APS in pregnancy treated with?",
-    options: ["Progesterone", "Aspirin", "Aspirin + LMWH", "Steroids"],
-    correct: 2,
-    image: ""
+    question:
+      "Woman with 3 early abortions, lupus anticoagulant positive twice 12 weeks apart. Best management in next pregnancy?",
+    options: ["Progesterone only", "Aspirin only", "Aspirin + LMWH", "Steroids"],
+    answer: 2,
   },
   {
-    q: "Structural cause in PALM-COEIN?",
-    options: ["Ovulatory", "Coagulopathy", "Leiomyoma", "Iatrogenic"],
-    correct: 2,
-    image: ""
+    question:
+      "According to FIGO PALM-COEIN, which is a structural cause of AUB?",
+    options: ["Ovulatory dysfunction", "Coagulopathy", "Leiomyoma", "Iatrogenic"],
+    answer: 2,
   },
   {
-    q: "Failure of uterosacral ligament causes?",
-    options: ["Cystocele", "Rectocele", "Uterine prolapse", "SUI"],
-    correct: 2,
-    image: ""
+    question:
+      "Failure of uterosacral-cardinal ligament complex leads to:",
+    options: ["Cystocele", "Rectocele", "Uterine prolapse", "Stress urinary incontinence"],
+    answer: 2,
   },
   {
-    q: "Medullary index 0.6 indicates hair of?",
-    options: ["Human", "Animal", "Mixed", "Unknown"],
-    correct: 1,
-    image: ""
+    question:
+      "Medullary index of hair sample is 0.6. Hair most likely belongs to:",
+    options: ["Human", "Animal", "Mixed", "Cannot be determined"],
+    answer: 1,
   },
   {
-    q: "Cephalic index 82 classified as?",
+    question:
+      "Cephalic index of 82 is classified as:",
     options: ["Dolichocephalic", "Mesaticephalic", "Brachycephalic", "Hyperdolichocephalic"],
-    correct: 2,
-    image: ""
+    answer: 2,
   },
   {
-    q: "Consent for medical exam of rape accused?",
-    options: ["Mandatory", "Not required", "Only if >18", "Only if female"],
-    correct: 1,
-    image: ""
+    question:
+      "In medical examination of a rape accused under Section 52 BNSS (53A CrPC), consent of the accused is:",
+    options: ["Mandatory", "Not required", "Required only if >18 years", "Required only if female"],
+    answer: 1,
   },
   {
-    q: "First permanent tooth erupts?",
+    question: "First permanent tooth to erupt is:",
     options: ["Central incisor", "Lateral incisor", "First molar", "Canine"],
-    correct: 2,
-    image: ""
+    answer: 2,
   },
   {
-    q: "Correct statement about dying declaration?",
-    options: ["Oath required", "Magistrate only", "Doctor certifies mental state", "Cross examination required"],
-    correct: 2,
-    image: ""
+    question: "Which statement regarding dying declaration is correct?",
+    options: ["Oath is mandatory", "Only magistrate can record it", "Doctor must certify patient is compos mentis", "Cross-examination is required"],
+    answer: 2,
   },
   {
-    q: "Special viscera in digoxin poisoning?",
+    question:
+      "In suspected digoxin poisoning, which organ should be specially preserved for chemical analysis?",
     options: ["Liver", "Kidney", "Heart", "Brain"],
-    correct: 2,
-    image: ""
+    answer: 2,
   },
   {
-    q: "Best preservative in alcohol poisoning?",
-    options: ["Spirit", "NaCl", "Sodium fluoride", "Formalin"],
-    correct: 2,
-    image: ""
+    question:
+      "Best preservative for blood sample in suspected alcohol poisoning is:",
+    options: ["Rectified spirit", "Saturated NaCl", "Sodium fluoride", "Formalin"],
+    answer: 2,
   },
   {
-    q: "Rigor mortis first appears in?",
-    options: ["Legs", "Eyelids", "Abdomen", "Neck"],
-    correct: 1,
-    image: ""
+    question: "Rigor mortis first appears in:",
+    options: ["Lower limbs", "Upper eyelids", "Abdomen", "Neck"],
+    answer: 1,
   },
   {
-    q: "Sudden collapse in cold water without aspiration?",
+    question:
+      "A person immersed in cold water suddenly collapses due to vagal inhibition without aspiration of water. This is:",
     options: ["Wet drowning", "Dry drowning", "Secondary drowning", "Hydrocution"],
-    correct: 3,
-    image: ""
+    answer: 3,
   },
   {
-    q: "Primary blast injury affects?",
-    options: ["Skin", "Intestine", "Ear", "Liver"],
-    correct: 2,
-    image: ""
+    question: "Most commonly injured organ in primary blast injury is:",
+    options: ["Skin", "Intestine", "Ear (Tympanic membrane)", "Liver"],
+    answer: 2,
   },
   {
-    q: "Chronic mercury poisoning called?",
-    options: ["Acute Hg", "Hydrargyrism", "Minamata", "Cadmium toxicity"],
-    correct: 1,
-    image: ""
+    question:
+      "A hat factory worker presents with irritability, excessive shyness, tremors, and gingivitis. Diagnosis?",
+    options: ["Acute mercuric chloride poisoning", "Hydrargyrism", "Minamata disease", "Cadmium toxicity"],
+    answer: 1,
   },
   {
-    q: "Epidemic dropsy caused by?",
-    options: ["Aconite", "Argemone", "Yellow oleander", "Dhatura"],
-    correct: 1,
-    image: ""
+    question:
+      "Outbreak of bilateral pitting edema, cardiomyopathy and glaucoma after mustard oil consumption suggests:",
+    options: ["Aconite poisoning", "Argemone mexicana", "Yellow oleander", "Dhatura"],
+    answer: 1,
   },
   {
-    q: "Barr bodies in 47XXX?",
+    question: "Number of Barr bodies in 47,XXX female is:",
     options: ["0", "1", "2", "3"],
-    correct: 2,
-    image: ""
+    answer: 2,
   },
   {
-    q: "Cephalhematoma feature?",
-    options: ["Cross sutures", "Subcutaneous", "Limited to one bone", "Resolves fast"],
-    correct: 2,
-    image: ""
+    question: "Which feature is characteristic of cephalhematoma?",
+    options: ["Crosses suture lines", "Subcutaneous edema", "Limited to single bone", "Resolves in few days"],
+    answer: 2,
   },
   {
-    q: "Only pharmacological emetic?",
-    options: ["Apomorphine", "Saline", "Ipecac", "Mustard"],
-    correct: 2,
-    image: ""
+    question: "Only pharmacological agent used to induce emesis is:",
+    options: ["Apomorphine", "Warm saline", "Ipecac", "Mustard powder"],
+    answer: 2,
   },
   {
-    q: "Unrespired lung floats due to?",
-    options: ["Edema", "Atelectasis", "Putrefaction", "Consolidation"],
-    correct: 2,
-    image: ""
+    question:
+      "Raygat’s (hydrostatic) test: An unrespired lung may float due to:",
+    options: ["Pulmonary edema", "Lung collapse", "Putrefaction", "Consolidation"],
+    answer: 2,
   },
   {
-    q: "Littre glands homologous to?",
-    options: ["Bartholin", "Skene", "Labia minora", "Labia majora"],
-    correct: 2,
-    image: ""
+    question:
+      "Glands of Littre in males are homologous to which structure in females?",
+    options: ["Bartholin gland", "Skene glands", "Glands of labia minora", "Glands of labia majora"],
+    answer: 2,
   },
   {
-    q: "Amenorrhea followed by heavy bleeding at 44 yrs?",
-    options: ["Irregular ripening", "Irregular shedding", "Metropathia hemorrhagica", "Luteal defect"],
-    correct: 2,
-    image: ""
+    question:
+      "A 44-year-old woman presents with 2 months amenorrhea followed by sudden heavy painless bleeding. Most likely diagnosis?",
+    options: ["Irregular ripening", "Irregular shedding", "Metropathia hemorrhagica", "Luteal phase defect"],
+    answer: 2,
   },
   {
-    q: "Direction of abrasion determined by?",
-    options: ["Fishtail", "Epidermal tags", "Tailing", "Hair follicles"],
-    correct: 1,
-    image: ""
+    question:
+      "In an abrasion caused by tangential force, direction of injury is determined by:",
+    options: ["Fish tailing", "Epidermal tags", "Tailing of wound", "Crushed hair follicles"],
+    answer: 1,
   },
   {
-    q: "Oleander toxin is?",
+    question:
+      "Pink flowering ornamental shrub ingestion with vomiting, bradycardia, hyperkalemia (oleander). Most likely toxin:",
     options: ["Atropine", "Cannabinol", "Semecarpol", "Nerin"],
-    correct: 3,
-    image: ""
+    answer: 3,
   },
   {
-    q: "Police arrest without warrant in?",
-    options: ["Non-cognizable", "Cognizable", "Summons", "Warrant"],
-    correct: 1,
-    image: ""
+    question: "Police officer can arrest without warrant in:",
+    options: ["Non-cognizable offence", "Cognizable offence", "Summons case", "Warrant case"],
+    answer: 1,
   },
   {
-    q: "46XY female with high testosterone suggests?",
-    options: ["XX pattern", "Raised male", "Internal female organs", "High testosterone"],
-    correct: 3,
-    image: ""
+    question:
+      "CAIS: 46,XY phenotypic female, absent uterus, sparse pubic hair. Which is a feature?",
+    options: ["XX pattern", "Commonly reared as male", "Well-formed female internal genitalia", "High testosterone levels"],
+    answer: 3,
   },
   {
-    q: "Shotgun rat-hole wound seen at?",
-    options: ["Contact", "15–30 cm", "30 cm–1 m", "2–4 m"],
-    correct: 2,
-    image: ""
+    question:
+      "Shotgun injury: single large circular entry with rat nibbling, no satellite pellet injuries. Range of fire?",
+    options: ["Contact shot", "15–30 cm", "30 cm – 1 metre", "2–4 metres"],
+    answer: 2,
   },
   {
-    q: "Body with weights in drowning suggests?",
-    options: ["Homicide", "Suicide", "Either", "Accidental"],
-    correct: 2,
-    image: ""
+    question:
+      "Decomposed body recovered with stones tied and limbs bound. Best interpretation?",
+    options: ["Homicidal drowning", "Suicidal drowning", "Can be either homicidal or suicidal", "Accidental drowning"],
+    answer: 2,
   },
   {
-    q: "Banana sign indicates?",
-    options: ["Anencephaly", "Down syndrome", "Spina bifida", "Klinefelter"],
-    correct: 2,
-    image: ""
+    question:
+      "Banana sign on second trimester scan is most commonly associated with:",
+    options: ["Anencephaly", "Down syndrome", "Spina bifida", "Klinefelter syndrome"],
+    answer: 2,
   },
   {
-    q: "Correct antidote match?",
-    options: ["OP–Physostigmine", "Atropine–Carnitine", "BZD–Flumazenil", "Arsenic–Deferoxamine"],
-    correct: 2,
-    image: ""
+    question:
+      "Which is a correctly matched antidote with its toxicity?",
+    options: ["Organophosphorus – Physostigmine", "Atropine – L-carnitine", "Benzodiazepine – Flumazenil", "Arsenic – Deferoxamine"],
+    answer: 2,
   },
   {
-    q: "Most common malignancy in Indian women?",
-    options: ["Cervix", "Breast", "Endometrium", "Ovary"],
-    correct: 1,
-    image: ""
+    question: "Most common malignancy in women in India is:",
+    options: ["Cervical cancer", "Breast cancer", "Endometrial cancer", "Ovarian cancer"],
+    answer: 1,
   },
   {
-    q: "Gas in fetal vessels sign called?",
-    options: ["Spalding", "Roberts", "Ball", "Halo"],
-    correct: 1,
-    image: ""
+    question:
+      "Gas shadow in great vessels of fetus on radiograph is called:",
+    options: ["Spalding sign", "Roberts sign", "Ball sign", "Halo sign"],
+    answer: 1,
   },
   {
-    q: "Lead poisoning inhibits?",
-    options: ["ALA synthase", "ALA dehydratase", "Heme oxygenase", "Copro oxidase"],
-    correct: 1,
-    image: ""
+    question:
+      "Lead poisoning: which enzyme is inhibited?",
+    options: ["ALA synthase", "ALA dehydratase", "Heme oxygenase", "Coproporphyrinogen oxidase"],
+    answer: 1,
   },
   {
-    q: "Most common HPV type in carcinoma cervix?",
+    question:
+      "Which HPV serotype is most commonly associated with carcinoma cervix?",
     options: ["16", "18", "31", "33"],
-    correct: 0,
-    image: ""
-  }
+    answer: 0,
+  },
 ];
-
-// Make it accessible globally
-window.questions = questions;
