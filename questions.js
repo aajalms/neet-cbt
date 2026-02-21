@@ -11,7 +11,7 @@ window.questions = [
     q: "CT shows both kidneys fused at lower poles anterior to aorta. Diagnosis?",
     options: ["Polycystic kidney disease", "Crossed fused ectopia", "Horseshoe kidney", "Renal agenesis"],
     correct: 2,
-    image: ""
+    image: "images/IMG_9833.jpg"
   },
   {
     q: "Gold standard imaging for cerebral aneurysm?",
