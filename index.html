@@ -6,32 +6,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body{
-  margin:0;font-family:Arial;background:#f4f6f8;overscroll-behavior:none;
-}
+body{margin:0;font-family:Arial;background:#f4f6f8}
 header{
-  background:#003366;color:#fff;padding:10px 20px;
-  display:flex;justify-content:space-between;align-items:center;
+  background:#003366;color:white;padding:10px 15px;
+  display:flex;justify-content:space-between;align-items:center
 }
-.container{display:flex;height:calc(100vh - 56px);}
-.main{width:70%;padding:20px;background:#fff;}
-.palette{
-  width:30%;padding:20px;background:#eef2f6;border-left:1px solid #ccc;
-}
-.question{font-size:18px;margin-bottom:15px;}
-.options label{display:block;margin-bottom:8px;cursor:pointer;}
-.controls button{padding:8px 14px;margin:8px 5px 0 0;font-weight:bold;}
-
+.container{display:flex;height:calc(100vh - 50px)}
+.main{width:70%;padding:20px;background:white}
+.palette{width:30%;padding:10px;background:#eef2f6;border-left:1px solid #ccc}
+.question{font-size:18px;margin-bottom:15px}
+.options label{display:block;margin:8px 0}
+.controls button{padding:8px 14px;margin:6px;font-weight:bold}
 .palette button{
-  width:40px;height:40px;margin:4px;border:none;
-  color:#fff;font-weight:bold;
+  width:38px;height:38px;margin:4px;border:none;
+  font-weight:bold;color:white
 }
-.red{background:#e74c3c;}
-.green{background:#27ae60;}
-.yellow{background:#f1c40f;color:#000;}
-.blue{background:#3498db;}
-.current{outline:3px solid #000;}
-.timer{font-weight:bold;}
+.red{background:#e74c3c}
+.green{background:#27ae60}
+.yellow{background:#f1c40f;color:black}
+.blue{background:#3498db}
+.current{outline:3px solid black}
+.timer{font-weight:bold}
 </style>
 </head>
 
@@ -61,36 +56,18 @@ header{
 </div>
 
 <script>
-/* ================= AUTH ================= */
-if(!sessionStorage.getItem("rollNo")) location.href="login.html";
-
-/* ================= STATE ================= */
-let violations=0;
-let lock=false;
-const MAX_VIOLATIONS=3;
-const vCount=document.getElementById("vCount");
-
-/* ================= FIREBASE ================= */
-const FIREBASE_DB="https://YOUR_FIREBASE_DB.firebaseio.com";
-
-function sendLive(status){
-  fetch(⁠ ${FIREBASE_DB}/live/${sessionStorage.getItem("rollNo")}.json ⁠,{
-    method:"PUT",
-    body:JSON.stringify({
-      rollNo:sessionStorage.getItem("rollNo"),
-      status,
-      time:new Date().toLocaleTimeString(),
-      violations
-    })
-  }).catch(()=>{});
+/* ================= DEV SAFETY ================= */
+if(!sessionStorage.getItem("rollNo")){
+  sessionStorage.setItem("rollNo","TEST001");
 }
 
 /* ================= QUESTIONS ================= */
 const questions=[
-  {q:"Pacemaker of heart is?",o:["AV node","SA node","Bundle of His","Purkinje fibers"],a:1},
-  {q:"Most common nerve injured in humerus fracture?",o:["Ulnar","Radial","Median","Axillary"],a:1}
+ {q:"Pacemaker of heart is?",o:["AV node","SA node","Bundle of His","Purkinje fibers"],a:1},
+ {q:"Most common nerve injured in humerus fracture?",o:["Ulnar","Radial","Median","Axillary"],a:1}
 ];
 
+/* ================= STATE ================= */
 let current=0;
 let answers=Array(questions.length).fill(null);
 let reviewSet=new Set();
@@ -98,24 +75,16 @@ let reviewSet=new Set();
 /* ================= TIMER ================= */
 let timeLeft=210*60;
 const timerEl=document.getElementById("timer");
-
-const timer=setInterval(()=>{
-  if(timeLeft<=0){
-    clearInterval(timer);
-    submitExam(true);
-    return;
-  }
+setInterval(()=>{
   let m=Math.floor(timeLeft/60),s=timeLeft%60;
-  timerEl.innerText=⁠ ${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")} ⁠;
-  timeLeft--;
+  timerEl.innerText=`${m.toString().padStart(2,"0")}:${s.toString().padStart(2,"0")}`;
+  if(timeLeft--<=0) submitExam(true);
 },1000);
 
 /* ================= RENDER ================= */
 function renderQuestion(){
   const q=questions[current];
-  document.getElementById("question").innerText=
-    ⁠ Question ${current+1}. ${q.q} ⁠;
-
+  document.getElementById("question").innerText=`Question ${current+1}. ${q.q}`;
   const opt=document.getElementById("options");
   opt.innerHTML="";
   q.o.forEach((o,i)=>{
@@ -136,20 +105,20 @@ function updatePalette(){
   questions.forEach((_,i)=>{
     const b=document.createElement("button");
     b.innerText=i+1;
-    if(reviewSet.has(i)&&answers[i]!=null) b.className="blue";
-    else if(reviewSet.has(i)) b.className="yellow";
-    else if(answers[i]!=null) b.className="green";
+    if(reviewSet.has(i)&&answers[i]!=null)b.className="blue";
+    else if(reviewSet.has(i))b.className="yellow";
+    else if(answers[i]!=null)b.className="green";
     else b.className="red";
-    if(i===current) b.classList.add("current");
-    b.onclick=()=>{current=i;renderQuestion();};
+    if(i===current)b.classList.add("current");
+    b.onclick=()=>{current=i;renderQuestion()};
     p.appendChild(b);
   });
 }
 
 /* ================= NAV ================= */
-function nextQuestion(){if(current<questions.length-1){current++;renderQuestion();}}
-function prevQuestion(){if(current>0){current--;renderQuestion();}}
-function clearResponse(){answers[current]=null;renderQuestion();}
+function nextQuestion(){if(current<questions.length-1){current++;renderQuestion()}}
+function prevQuestion(){if(current>0){current--;renderQuestion()}}
+function clearResponse(){answers[current]=null;renderQuestion()}
 function markForReview(){
   reviewSet.has(current)?reviewSet.delete(current):reviewSet.add(current);
   renderQuestion();
@@ -160,67 +129,19 @@ function submitExam(auto=false){
   let score=0,correct=0,wrong=0,skipped=0;
   answers.forEach((a,i)=>{
     if(a===questions[i].a){score+=4;correct++}
-    else if(a==null) skipped++;
+    else if(a==null)skipped++;
     else{score--;wrong++}
   });
-
-  sendLive(auto?"AUTO_SUBMITTED":"SUBMITTED");
 
   sessionStorage.setItem("neetResult",JSON.stringify({
     rollNo:sessionStorage.getItem("rollNo"),
     total:questions.length,
-    correct,wrong,skipped,score,
-    timeUsed:(210*60-timeLeft),
-    violations,
-    status:auto?"AUTO":"NORMAL"
+    correct,wrong,skipped,score
   }));
-
   location.href="result.html";
 }
 
-/* ================= SECURITY ================= */
-function recordViolation(reason){
-  if(lock) return;
-  lock=true;
-  violations++;
-  vCount.innerText=violations;
-  sendLive("Violation: "+reason);
-
-  if(violations>=MAX_VIOLATIONS){
-    alert("❌ Auto submitted due to violations");
-    submitExam(true);
-  }else{
-    alert(⁠ ⚠ ${reason} (${violations}/3) ⁠);
-  }
-  setTimeout(()=>lock=false,1500);
-}
-
-/* Desktop fullscreen only */
-setTimeout(()=>{
-  try{
-    if(!/iphone|ipad|android/i.test(navigator.userAgent))
-      document.documentElement.requestFullscreen();
-  }catch(e){}
-},1000);
-
-document.addEventListener("fullscreenchange",()=>{
-  if(!document.fullscreenElement)
-    recordViolation("Exited fullscreen");
-});
-document.addEventListener("visibilitychange",()=>{
-  if(document.hidden) recordViolation("Tab switch");
-});
-document.addEventListener("contextmenu",e=>{
-  e.preventDefault();recordViolation("Right click");
-});
-document.addEventListener("keydown",e=>{
-  if(e.key==="F12"||e.key==="F5"||(e.ctrlKey&&["r","u","s"].includes(e.key))){
-    e.preventDefault();recordViolation("Restricted key");
-  }
-});
-
 /* INIT */
-sendLive("Exam Started");
 renderQuestion();
 </script>
 
