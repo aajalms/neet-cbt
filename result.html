@@ -33,41 +33,55 @@
     <pre id="reviewBox" style="display:none;"></pre>
   </div>
 
+  <!-- IMPORTANT: questions.js must load BEFORE review() uses questions -->
   <script src="questions.js"></script>
-  <script>
-    const c = JSON.parse(localStorage.getItem("candidate")||"null");
-    const res = JSON.parse(localStorage.getItem("result")||"null");
-    const state = JSON.parse(localStorage.getItem("cbt_state")||"null");
-    const answers = JSON.parse(localStorage.getItem("userAnswers")||"[]");
 
-    if(!c || !res){ location.href="login.html"; }
+  <script>
+    const c = JSON.parse(localStorage.getItem("candidate") || "null");
+    const res = JSON.parse(localStorage.getItem("result") || "null");
+    const state = JSON.parse(localStorage.getItem("cbt_state") || "null");
+    const answers = JSON.parse(localStorage.getItem("userAnswers") || "[]");
+
+    if (!c || !res) {
+      location.href = "login.html";
+    }
 
     document.getElementById("cand").innerText = `${c.name} (${c.roll})`;
-    document.getElementById("score").innerText = res.score;
-    document.getElementById("correct").innerText = res.correct;
-    document.getElementById("wrong").innerText = res.wrong;
-    document.getElementById("unatt").innerText = res.unattempted;
+    document.getElementById("score").innerText = res.score ?? 0;
+    document.getElementById("correct").innerText = res.correct ?? 0;
+    document.getElementById("wrong").innerText = res.wrong ?? 0;
+    document.getElementById("unatt").innerText = res.unattempted ?? 0;
     document.getElementById("viol").innerText = (state?.violations ?? 0);
-    document.getElementById("subtime").innerText = new Date(res.submittedAt).toLocaleString();
 
-    function review(){
+    const submittedAt = res.submittedAt ? new Date(res.submittedAt) : null;
+    document.getElementById("subtime").innerText = submittedAt ? submittedAt.toLocaleString() : "-";
+
+    function review() {
       const box = document.getElementById("reviewBox");
       box.style.display = "block";
 
       let out = "";
-      questions.forEach((q,i)=>{
-        const sel = answers[i];
+      (window.questions || []).forEach((q, i) => {
+        const sel = (typeof answers[i] === "number") ? answers[i] : null;
+
+        // ✅ FIX: question text is q.q and correct index is q.correct
         out += `Q${i+1}. ${q.q}\n`;
-        q.options.forEach((op,idx)=>{
-          const correct = (idx===q.answer) ? "✅" : "";
-          const chosen = (sel===idx) ? "👉" : "";
-          out += `   ${String.fromCharCode(65+idx)}. ${op} ${chosen} ${correct}\n`;
+
+        q.options.forEach((op, idx) => {
+          const isCorrect = (idx === q.correct);
+          const isChosen = (sel === idx);
+
+          const correctMark = isCorrect ? "✅" : "";
+          const chosenMark = isChosen ? "👉" : "";
+
+          out += `   ${String.fromCharCode(65 + idx)}. ${op} ${chosenMark} ${correctMark}\n`;
         });
+
         out += "\n";
       });
 
       box.textContent = out;
-      box.scrollIntoView({behavior:"smooth"});
+      box.scrollIntoView({ behavior: "smooth" });
     }
   </script>
 </body>
