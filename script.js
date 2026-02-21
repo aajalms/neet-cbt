@@ -1,4 +1,8 @@
-// script.js
+// script.js (TOP)
+if (typeof questions === "undefined" || !Array.isArray(questions)) {
+  alert("ERROR: questions.js not loaded!\n\nCheck:\n1) file name is exactly questions.js\n2) same folder as index.html\n3) committed to GitHub\n4) case-sensitive on GitHub Pages");
+  throw new Error("questions.js not loaded");
+}
 
 // ===== SETTINGS =====
 const TEST_DURATION_SECONDS = 180 * 60; // 3 hours
