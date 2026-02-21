@@ -6,83 +6,98 @@
   <title>NEET PG CBT - Result</title>
   <style>
     body{margin:0;font-family:Arial;background:#eef2f7;padding:20px;}
-    .box{max-width:900px;margin:auto;background:#fff;border-radius:6px;padding:18px;box-shadow:0 2px 10px rgba(0,0,0,.08);}
-    h2{margin:0 0 10px;background:#003366;color:#fff;padding:10px;border-radius:4px;}
-    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
-    .card{background:#f7f7f7;padding:12px;border-left:5px solid #003366;}
+    .box{max-width:900px;margin:auto;background:#fff;border-radius:8px;padding:18px;box-shadow:0 2px 10px rgba(0,0,0,.08);}
+    h2{margin:0 0 10px;background:#003366;color:#fff;padding:10px;border-radius:6px;}
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px;}
+    .card{background:#f7f7f7;padding:12px;border-left:5px solid #003366;border-radius:6px;}
     .small{font-size:12px;color:#666;}
-    button{margin-top:14px;background:#003366;color:#fff;border:0;padding:10px 12px;border-radius:4px;font-weight:bold;cursor:pointer;}
-    pre{white-space:pre-wrap;background:#f8f9fa;padding:10px;border-radius:6px;border:1px solid #ddd;}
+    .btn{margin-top:14px;background:#003366;color:#fff;border:none;padding:10px 14px;border-radius:8px;font-weight:700;cursor:pointer;}
+    .btn2{margin-left:10px;background:#e74c3c;}
+    .shots{margin-top:18px;}
+    .shot{background:#fff;border:1px solid #d9dde5;border-radius:8px;padding:10px;margin-bottom:10px;}
+    img{max-width:100%;border-radius:6px;}
+    .badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700;}
+    .ok{background:#d7f5df;color:#0a7a2d;}
+    .bad{background:#ffe0e0;color:#b00020;}
   </style>
 </head>
 <body>
   <div class="box">
-    <h2>Result</h2>
-    <div id="cand" class="small"></div>
+    <h2>NEET PG CBT - Result</h2>
 
-    <div class="grid" style="margin-top:12px;">
-      <div class="card">Score: <b id="score">0</b></div>
-      <div class="card">Correct: <b id="correct">0</b></div>
-      <div class="card">Wrong: <b id="wrong">0</b></div>
-      <div class="card">Unattempted: <b id="unatt">0</b></div>
-      <div class="card">Violations: <b id="viol">0</b></div>
-      <div class="card">Submitted At: <b id="subtime">-</b></div>
+    <div class="small" id="meta"></div>
+    <div class="small" id="uploadStatus"></div>
+
+    <div class="grid">
+      <div class="card"><b>Correct</b><div id="correct">0</div></div>
+      <div class="card"><b>Wrong</b><div id="wrong">0</div></div>
+      <div class="card"><b>Unattempted</b><div id="unattempted">0</div></div>
+      <div class="card"><b>Marks</b><div id="marks">0</div></div>
     </div>
 
-    <button onclick="review()">Show Answer Review</button>
-    <pre id="reviewBox" style="display:none;"></pre>
+    <button class="btn" id="restart">Restart Test</button>
+    <button class="btn btn2" id="logout">Logout</button>
+
+    <div class="shots">
+      <h3>Proctoring Screenshots</h3>
+      <div class="small">Captured during violations (if browser allowed).</div>
+      <div id="shotsList"></div>
+    </div>
   </div>
 
-  <!-- IMPORTANT: questions.js must load BEFORE review() uses questions -->
-  <script src="questions.js"></script>
+<script>
+  const LS_KEY = "neet_cbt_state_v2";
+  function $(id){ return document.getElementById(id); }
+  function safeJsonParse(str){ try { return JSON.parse(str); } catch { return null; } }
 
-  <script>
-    const c = JSON.parse(localStorage.getItem("candidate") || "null");
-    const res = JSON.parse(localStorage.getItem("result") || "null");
-    const state = JSON.parse(localStorage.getItem("cbt_state") || "null");
-    const answers = JSON.parse(localStorage.getItem("userAnswers") || "[]");
+  const state = safeJsonParse(localStorage.getItem(LS_KEY) || "");
+  const cand = safeJsonParse(localStorage.getItem("neet_candidate") || "");
 
-    if (!c || !res) {
-      location.href = "login.html";
-    }
+  if (!state || !state.result) {
+    $("meta").textContent = "No result found. Please start the test again.";
+    $("uploadStatus").innerHTML = "";
+  } else {
+    const cname = cand ? `${cand.id || ""}${cand.name ? " - " + cand.name : ""}` : "Unknown";
+    $("meta").textContent =
+      `Candidate: ${cname} | Status: ${state.result.reason} | Submitted: ${state.result.submittedAt} | Violations: ${state.result.violations}`;
 
-    document.getElementById("cand").innerText = `${c.name} (${c.roll})`;
-    document.getElementById("score").innerText = res.score ?? 0;
-    document.getElementById("correct").innerText = res.correct ?? 0;
-    document.getElementById("wrong").innerText = res.wrong ?? 0;
-    document.getElementById("unatt").innerText = res.unattempted ?? 0;
-    document.getElementById("viol").innerText = (state?.violations ?? 0);
+    const uploaded = state._uploaded === true;
+    $("uploadStatus").innerHTML =
+      uploaded
+        ? `<span class="badge ok">Uploaded to Google Sheet</span>`
+        : `<span class="badge bad">Upload not confirmed (check internet / Apps Script)</span>`;
 
-    const submittedAt = res.submittedAt ? new Date(res.submittedAt) : null;
-    document.getElementById("subtime").innerText = submittedAt ? submittedAt.toLocaleString() : "-";
+    $("correct").textContent = state.result.correct;
+    $("wrong").textContent = state.result.wrong;
+    $("unattempted").textContent = state.result.unattempted;
+    $("marks").textContent = `${state.result.marks} / ${state.result.total}`;
 
-    function review() {
-      const box = document.getElementById("reviewBox");
-      box.style.display = "block";
+    const shots = state.violationShots || [];
+    const wrap = $("shotsList");
+    wrap.innerHTML = "";
 
-      let out = "";
-      (window.questions || []).forEach((q, i) => {
-        const sel = (typeof answers[i] === "number") ? answers[i] : null;
-
-        // ✅ FIX: question text is q.q and correct index is q.correct
-        out += `Q${i+1}. ${q.q}\n`;
-
-        q.options.forEach((op, idx) => {
-          const isCorrect = (idx === q.correct);
-          const isChosen = (sel === idx);
-
-          const correctMark = isCorrect ? "✅" : "";
-          const chosenMark = isChosen ? "👉" : "";
-
-          out += `   ${String.fromCharCode(65 + idx)}. ${op} ${chosenMark} ${correctMark}\n`;
-        });
-
-        out += "\n";
+    if (shots.length === 0) {
+      wrap.innerHTML = "<div class='small'>No screenshots captured.</div>";
+    } else {
+      shots.forEach((s, idx) => {
+        const div = document.createElement("div");
+        div.className = "shot";
+        div.innerHTML = `<b>Violation ${idx+1}</b> <div class="small">${s.at}</div><br/>
+                         <img src="${s.dataUrl}" alt="Violation screenshot"/>`;
+        wrap.appendChild(div);
       });
-
-      box.textContent = out;
-      box.scrollIntoView({ behavior: "smooth" });
     }
-  </script>
+  }
+
+  $("restart").addEventListener("click", () => {
+    localStorage.removeItem(LS_KEY);
+    window.location.href = "index.html";
+  });
+
+  $("logout").addEventListener("click", () => {
+    localStorage.removeItem("neet_candidate");
+    window.location.href = "login.html";
+  });
+</script>
 </body>
 </html>
