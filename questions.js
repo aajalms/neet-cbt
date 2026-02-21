@@ -1,17 +1,18 @@
 // questions.js
-// IMPORTANT: must be global so script.js can read it
-window.questions = [
+// IMPORTANT: keep this file name EXACTLY as "questions.js"
+
+const questions = [
   {
     q: "CXR shows sharp visceral pleural line with absent peripheral lung markings. Diagnosis?",
     options: ["Pulmonary edema", "Massive pleural effusion", "Tension pneumothorax", "Lung collapse"],
     correct: 2,
-    image: "images/IMG_9833.jpg"
+    image: ""
   },
   {
     q: "CT shows both kidneys fused at lower poles anterior to aorta. Diagnosis?",
     options: ["Polycystic kidney disease", "Crossed fused ectopia", "Horseshoe kidney", "Renal agenesis"],
     correct: 2,
-    image: "images/IMG_9833.jpg"
+    image: ""
   },
   {
     q: "Gold standard imaging for cerebral aneurysm?",
@@ -362,3 +363,6 @@ window.questions = [
     image: ""
   }
 ];
+
+// Make it accessible globally
+window.questions = questions;
