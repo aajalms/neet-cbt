@@ -1,149 +1,134 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>NEET PG CBT</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NEET PG CBT</title>
 
-<style>
-body{margin:0;font-family:Arial;background:#f4f6f8}
-header{
-  background:#003366;color:white;padding:10px 15px;
-  display:flex;justify-content:space-between;align-items:center
-}
-.container{display:flex;height:calc(100vh - 50px)}
-.main{width:70%;padding:20px;background:white}
-.palette{width:30%;padding:10px;background:#eef2f6;border-left:1px solid #ccc}
-.question{font-size:18px;margin-bottom:15px}
-.options label{display:block;margin:8px 0}
-.controls button{padding:8px 14px;margin:6px;font-weight:bold}
-.palette button{
-  width:38px;height:38px;margin:4px;border:none;
-  font-weight:bold;color:white
-}
-.red{background:#e74c3c}
-.green{background:#27ae60}
-.yellow{background:#f1c40f;color:black}
-.blue{background:#3498db}
-.current{outline:3px solid black}
-.timer{font-weight:bold}
-</style>
+  <style>
+    body{margin:0;font-family:Arial, sans-serif;background:#f4f6f8;overscroll-behavior:none;}
+    header{
+      background:#003366;color:#fff;padding:10px 16px;
+      display:flex;justify-content:space-between;align-items:center;
+      font-size:14px; position:sticky; top:0; z-index:10;
+    }
+    .container{display:flex;height:calc(100vh - 52px);}
+    .main{width:70%;padding:18px;background:#fff;overflow:auto;}
+    .palette{width:30%;padding:14px;background:#eef2f6;border-left:1px solid #ccc;overflow:auto;}
+
+    .qno{font-weight:bold;margin-bottom:6px;}
+    .question{font-size:18px;margin-bottom:10px;line-height:1.35;}
+    .options label{display:block;margin:10px 0;cursor:pointer;font-size:16px;}
+    .options input{margin-right:10px;transform:scale(1.1);}
+    .btns{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;}
+    button{
+      padding:9px 14px;border:none;border-radius:18px;cursor:pointer;
+      font-weight:bold;background:#e7edf5;color:#003366;
+    }
+    button.primary{background:#0b5ed7;color:#fff;}
+    button.danger{background:#dc3545;color:#fff;}
+    button.warn{background:#ffc107;color:#111;}
+
+    /* palette */
+    .pal-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+    .pal-grid button{
+      width:42px;height:42px;border-radius:6px;color:#fff;font-weight:bold;
+      border:none;cursor:pointer;
+    }
+    .pal-unseen{background:#6c757d;}
+    .pal-seen{background:#e74c3c;}
+    .pal-answered{background:#27ae60;}
+    .pal-review{background:#f1c40f;color:#111;}
+    .pal-current{outline:3px solid #000;}
+
+    /* image */
+    .qimg{
+      max-width:100%;
+      border:1px solid #ddd;
+      border-radius:8px;
+      margin:8px 0 12px 0;
+      cursor:zoom-in;
+    }
+
+    /* modal viewer */
+    .img-modal{
+      display:none; position:fixed; inset:0;
+      background:rgba(0,0,0,0.92); z-index:9999;
+    }
+    .img-modal-pic{
+      max-width:96vw; max-height:90vh;
+      position:absolute; top:50%; left:50%;
+      transform:translate(-50%,-50%);
+      object-fit:contain;
+    }
+    .img-close{
+      position:absolute; top:10px; right:18px;
+      font-size:42px; color:#fff; cursor:pointer; user-select:none;
+    }
+
+    /* watermark */
+    .watermark{
+      position:fixed; inset:0; pointer-events:none; z-index:9998;
+      opacity:0.12; font-size:22px; color:#000;
+      display:flex; align-items:center; justify-content:center;
+      transform:rotate(-25deg); user-select:none;
+      text-align:center; padding:20px;
+      white-space:pre-line;
+    }
+
+    /* small footer info */
+    .meta{margin-top:14px;font-size:13px;color:#444;background:#f7f9fc;padding:10px;border-radius:8px;}
+    .meta b{color:#111;}
+  </style>
 </head>
 
 <body>
 
-<header>
-  <div>NEET PG CBT</div>
-  <div class="timer" id="timer">210:00</div>
-  <div>Violations: <span id="vCount">0</span></div>
-</header>
+  <header>
+    <div><b>NEET PG CBT</b></div>
+    <div>Time: <span id="timer">--:--</span></div>
+    <div>Violations: <span id="violations">0</span></div>
+  </header>
 
-<div class="container">
-  <div class="main">
-    <div class="question" id="question"></div>
-    <div class="options" id="options"></div>
+  <div id="watermark" class="watermark"></div>
 
-    <div class="controls">
-      <button onclick="prevQuestion()">Previous</button>
-      <button onclick="nextQuestion()">Next</button>
-      <button onclick="clearResponse()">Clear</button>
-      <button onclick="markForReview()">Mark for Review</button>
-      <button onclick="submitExam()">Submit</button>
+  <div class="container">
+    <div class="main">
+      <div class="qno" id="qno">Question</div>
+      <div class="question" id="qtext">Loading...</div>
+
+      <img id="qimg" class="qimg" style="display:none" alt="Question Image" />
+
+      <div class="options" id="options"></div>
+
+      <div class="btns">
+        <button id="prevBtn">Previous</button>
+        <button id="nextBtn">Next</button>
+        <button id="clearBtn" class="warn">Clear</button>
+        <button id="reviewBtn" class="warn">Mark for Review</button>
+        <button id="submitBtn" class="danger">Submit</button>
+      </div>
+
+      <div class="meta">
+        Marking: <b>+4 correct</b> | <b>-1 wrong</b> | <b>0 unattempted</b><br/>
+        Tip: Click image to <b>zoom fullscreen</b>.
+      </div>
+    </div>
+
+    <div class="palette">
+      <div><b>Question Palette</b></div>
+      <div class="pal-grid" id="palGrid"></div>
     </div>
   </div>
 
-  <div class="palette" id="palette"></div>
-</div>
+  <!-- Fullscreen image viewer -->
+  <div id="imgModal" class="img-modal">
+    <span id="imgClose" class="img-close">×</span>
+    <img id="imgModalPic" class="img-modal-pic" />
+  </div>
 
-<script>
-/* ================= DEV SAFETY ================= */
-if(!sessionStorage.getItem("rollNo")){
-  sessionStorage.setItem("rollNo","TEST001");
-}
-
-/* ================= QUESTIONS ================= */
-const questions=[
- {q:"Pacemaker of heart is?",o:["AV node","SA node","Bundle of His","Purkinje fibers"],a:1},
- {q:"Most common nerve injured in humerus fracture?",o:["Ulnar","Radial","Median","Axillary"],a:1}
-];
-
-/* ================= STATE ================= */
-let current=0;
-let answers=Array(questions.length).fill(null);
-let reviewSet=new Set();
-
-/* ================= TIMER ================= */
-let timeLeft=210*60;
-const timerEl=document.getElementById("timer");
-setInterval(()=>{
-  let m=Math.floor(timeLeft/60),s=timeLeft%60;
-  timerEl.innerText=`${m.toString().padStart(2,"0")}:${s.toString().padStart(2,"0")}`;
-  if(timeLeft--<=0) submitExam(true);
-},1000);
-
-/* ================= RENDER ================= */
-function renderQuestion(){
-  const q=questions[current];
-  document.getElementById("question").innerText=`Question ${current+1}. ${q.q}`;
-  const opt=document.getElementById("options");
-  opt.innerHTML="";
-  q.o.forEach((o,i)=>{
-    opt.innerHTML+=`
-      <label>
-        <input type="radio" name="opt"
-        ${answers[current]===i?"checked":""}
-        onclick="answers[${current}]=${i}">
-        ${o}
-      </label>`;
-  });
-  updatePalette();
-}
-
-function updatePalette(){
-  const p=document.getElementById("palette");
-  p.innerHTML="";
-  questions.forEach((_,i)=>{
-    const b=document.createElement("button");
-    b.innerText=i+1;
-    if(reviewSet.has(i)&&answers[i]!=null)b.className="blue";
-    else if(reviewSet.has(i))b.className="yellow";
-    else if(answers[i]!=null)b.className="green";
-    else b.className="red";
-    if(i===current)b.classList.add("current");
-    b.onclick=()=>{current=i;renderQuestion()};
-    p.appendChild(b);
-  });
-}
-
-/* ================= NAV ================= */
-function nextQuestion(){if(current<questions.length-1){current++;renderQuestion()}}
-function prevQuestion(){if(current>0){current--;renderQuestion()}}
-function clearResponse(){answers[current]=null;renderQuestion()}
-function markForReview(){
-  reviewSet.has(current)?reviewSet.delete(current):reviewSet.add(current);
-  renderQuestion();
-}
-
-/* ================= SUBMIT ================= */
-function submitExam(auto=false){
-  let score=0,correct=0,wrong=0,skipped=0;
-  answers.forEach((a,i)=>{
-    if(a===questions[i].a){score+=4;correct++}
-    else if(a==null)skipped++;
-    else{score--;wrong++}
-  });
-
-  sessionStorage.setItem("neetResult",JSON.stringify({
-    rollNo:sessionStorage.getItem("rollNo"),
-    total:questions.length,
-    correct,wrong,skipped,score
-  }));
-  location.href="result.html";
-}
-
-/* INIT */
-renderQuestion();
-</script>
-
+  <!-- IMPORTANT: questions.js must be before script.js -->
+  <script src="questions.js?v=999"></script>
+  <script src="script.js?v=999"></script>
 </body>
 </html>
