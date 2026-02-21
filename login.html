@@ -1,56 +1,55 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>CBT Login</title>
-<style>
-body{
-  font-family:Arial;
-  background:#eef2f7;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-}
-.box{
-  background:#fff;
-  padding:30px;
-  width:320px;
-  border-radius:8px;
-  box-shadow:0 0 10px rgba(0,0,0,.1);
-}
-h2{text-align:center;color:#003366;}
-input,button{
-  width:100%;
-  padding:10px;
-  margin-top:10px;
-}
-button{
-  background:#003366;
-  color:white;
-  border:none;
-  cursor:pointer;
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NEET PG CBT - Login</title>
+  <style>
+    body{margin:0;font-family:Arial;background:#eef2f7;}
+    .header{background:#003366;color:#fff;padding:14px 18px;font-size:18px;}
+    .box{max-width:420px;margin:40px auto;background:#fff;padding:18px;border-radius:6px;box-shadow:0 2px 10px rgba(0,0,0,.08);}
+    label{display:block;margin:10px 0 6px;}
+    input{width:100%;padding:10px;border:1px solid #ccc;border-radius:4px;}
+    button{width:100%;margin-top:14px;background:#003366;color:#fff;border:0;padding:11px;border-radius:4px;font-size:16px;}
+    .note{font-size:12px;color:#666;margin-top:10px;line-height:1.4;}
+  </style>
 </head>
 <body>
+  <div class="header">NEET PG CBT - Candidate Login</div>
 
-<div class="box">
-<h2>CBT Login</h2>
-<input id="roll" placeholder="Roll Number" required>
-<input id="name" placeholder="Student Name" required>
-<button onclick="login()">Proceed</button>
-</div>
+  <div class="box">
+    <label>Candidate Name</label>
+    <input id="name" placeholder="Enter name" />
 
-<script>
-function login(){
-  const roll=document.getElementById("roll").value.trim();
-  const name=document.getElementById("name").value.trim();
-  if(!roll||!name){ alert("Fill all fields"); return; }
+    <label>Roll Number</label>
+    <input id="roll" placeholder="Enter roll number" />
 
-  sessionStorage.setItem("roll",roll);
-  sessionStorage.setItem("name",name);
-  location.href="instructions.html";
-}
-</script>
+    <label>Password</label>
+    <input id="pass" type="password" placeholder="Enter password" />
+
+    <button onclick="login()">Login</button>
+
+    <div class="note">
+      Change password inside this file: <b>LOGIN_PASSWORD</b>
+    </div>
+  </div>
+
+  <script>
+    const LOGIN_PASSWORD = "neet123"; // change this
+
+    function login(){
+      const name = document.getElementById("name").value.trim();
+      const roll = document.getElementById("roll").value.trim();
+      const pass = document.getElementById("pass").value;
+
+      if(!name || !roll){ alert("Enter Name & Roll No."); return; }
+      if(pass !== LOGIN_PASSWORD){ alert("Wrong password"); return; }
+
+      localStorage.setItem("candidate", JSON.stringify({name, roll, loginTime: Date.now()}));
+      // reset previous attempt if needed:
+      // localStorage.removeItem("cbt_state");
+      location.href = "instructions.html";
+    }
+  </script>
 </body>
 </html>
