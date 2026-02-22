@@ -7,14 +7,43 @@
 
   <!-- Your CSS file -->
   <link rel="stylesheet" href="style.css" />
+
+  <!-- Prevent text selection (optional) -->
+  <style>
+    body { -webkit-user-select:none; user-select:none; }
+    input { -webkit-user-select:auto; user-select:auto; } /* keep radio usable */
+
+    /* Submit overlay */
+    .overlay{
+      position:fixed; inset:0; background:rgba(0,0,0,.45);
+      display:none; align-items:center; justify-content:center; z-index:9999;
+      font-family:Arial;
+    }
+    .overlay .box{
+      background:#fff; padding:18px 20px; border-radius:10px;
+      width:min(360px, 92vw); box-shadow:0 10px 30px rgba(0,0,0,.2);
+      text-align:center;
+    }
+    .overlay .box b{ display:block; margin-bottom:6px; }
+    .overlay .small{ font-size:12px; color:#666; margin-top:6px; }
+  </style>
 </head>
 
 <body>
+  <!-- Submit overlay -->
+  <div class="overlay" id="submitOverlay">
+    <div class="box">
+      <b>Submitting…</b>
+      Please wait. Do not refresh or press back.
+      <div class="small">Uploading result to Google Sheet (best effort).</div>
+    </div>
+  </div>
+
   <!-- TOP BAR -->
   <header class="topbar">
     <div class="brand">NEET PG CBT</div>
     <div class="meta">
-      <span>Time Left: <b id="timeLeft">180:00</b></span>
+      <span>Time Left: <b id="timeLeft">03:00:00</b></span>
       <span class="sep">|</span>
       <span>Violations: <b id="violationsCount">0</b></span>
     </div>
@@ -36,14 +65,14 @@
 
       <!-- Controls -->
       <div class="controls">
-        <button id="btnPrev" class="btn light">Previous</button>
-        <button id="btnClear" class="btn light">Clear Response</button>
-        <button id="btnMark" class="btn warn">Mark for Review</button>
-        <button id="btnSaveNext" class="btn primary">Save & Next</button>
+        <button id="btnPrev" class="btn light" type="button">Previous</button>
+        <button id="btnClear" class="btn light" type="button">Clear Response</button>
+        <button id="btnMark" class="btn warn" type="button">Mark for Review</button>
+        <button id="btnSaveNext" class="btn primary" type="button">Save & Next</button>
       </div>
 
       <!-- Submit -->
-      <button id="btnSubmit" class="btn danger submit">Submit</button>
+      <button id="btnSubmit" class="btn danger submit" type="button">Submit</button>
 
       <!-- Proctoring note -->
       <div class="proctor-note" id="proctorNote">
@@ -68,9 +97,9 @@
       <div class="proctor-box">
         <h4>Proctoring</h4>
         <div class="small">
-          Violations trigger screenshots & can auto-submit after limit.
+          Violations can auto-submit after limit. Use fullscreen.
         </div>
-        <button id="btnFullscreen" class="btn light fullbtn">Enter Fullscreen</button>
+        <button id="btnFullscreen" class="btn light fullbtn" type="button">Enter Fullscreen</button>
       </div>
     </aside>
   </div>
@@ -79,5 +108,23 @@
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="questions.js"></script>
   <script src="script.js"></script>
+
+  <!-- Small helper: disable double submit click -->
+  <script>
+    (function(){
+      const subBtn = document.getElementById("btnSubmit");
+      const overlay = document.getElementById("submitOverlay");
+      if (!subBtn || !overlay) return;
+
+      subBtn.addEventListener("click", () => {
+        // show overlay immediately on click
+        overlay.style.display = "flex";
+        // disable button to prevent double click
+        subBtn.disabled = true;
+        subBtn.style.opacity = "0.7";
+        subBtn.textContent = "Submitting...";
+      });
+    })();
+  </script>
 </body>
 </html>
