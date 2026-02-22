@@ -19,7 +19,7 @@ window.questions = [
   },
   {
     id: 2,
-    image: "images/IMG_9834. jpeg",
+    image: "images/IMG_9834.jpeg",
     question:
       "MCQ 2: A CT scan of the abdomen done for abdominal pain shows both kidneys located lower than normal and fused at their lower poles across the midline, anterior to the aorta.\n\nWhat is the diagnosis?",
     options: [
@@ -33,7 +33,7 @@ window.questions = [
   },
   {
     id: 3,
-    image: "images/IMG_9835. jpeg",
+    image: "images/IMG_9835.jpeg",
     question:
       "MCQ 3: A bone-free angiographic image shows a rounded contrast-filled outpouching arising from a cerebral artery. The patient had subarachnoid hemorrhage.\n\nWhich imaging modality is shown and what is the treatment?",
     options: [
@@ -47,7 +47,7 @@ window.questions = [
   },
   {
     id: 4,
-    image: "images/IMG_9836. jpeg",
+    image: "images/IMG_9836.jpeg",
     question:
       "MCQ 4: An elderly patient presents with chronic backache. The lateral skull X-ray shows multiple well-defined punched-out radiolucent lesions giving a “raindrop” appearance.\n\nWhat is the MOST LIKELY diagnosis?",
     options: [
@@ -61,7 +61,7 @@ window.questions = [
   },
   {
     id: 5,
-    image: "images/IMG_9837. jpeg",
+    image: "images/IMG_9837.jpeg",
     question:
       "MCQ 5: A patient presents with severe epigastric pain radiating to the back. CT abdomen shows an enlarged pancreas with surrounding fat stranding and inflammatory changes (outlined area).\n\nWhat is the diagnosis?",
     options: [
@@ -75,7 +75,7 @@ window.questions = [
   },
   {
     id: 6,
-    image: "images/IMG_9864. jpeg",
+    image: "images/IMG_9864.jpeg",
     question:
       "MCQ 6: MRI of the knee shows disruption and abnormal signal intensity of a ligament extending from the femur to the tibia (marked by arrow).\n\nWhich structure is injured?",
     options: [
@@ -89,7 +89,7 @@ window.questions = [
   },
   {
     id: 7,
-    image: "images/IMG_9839. jpeg",
+    image: "images/IMG_9839.jpeg",
     question:
       "MCQ 7: A chest X-ray of a child with cyanotic spells shows a heart shaped like a boot with decreased pulmonary vascular markings.\n\nWhat is the MOST LIKELY diagnosis?",
     options: [
@@ -103,7 +103,7 @@ window.questions = [
   },
   {
     id: 8,
-    image: "images/IMG_9840. jpeg",
+    image: "images/IMG_9840.jpeg",
     question:
       "MCQ 8: The radiological appearance shown in the IVP image is best described as adder head (cobra head) appearance. This finding is most commonly associated with which condition?",
     options: [
@@ -117,7 +117,7 @@ window.questions = [
   },
   {
     id: 9,
-    image: "images/IMG_9941. jpeg",
+    image: "images/IMG_9941.jpeg",
     question:
       "MCQ 9: The “bunch of grapes” appearance seen on HRCT chest is characteristic of:",
     options: [
@@ -131,7 +131,7 @@ window.questions = [
   },
   {
     id: 10,
-    image: "images/IMG_9842. jpeg",
+    image: "images/IMG_9842.jpeg",
     question:
       "MCQ 10: Crazy paving pattern on HRCT chest is most classically associated with:",
     options: [
@@ -147,7 +147,7 @@ window.questions = [
   // ===== Set 2 =====
   {
     id: 11,
-    image: "images/IMG_9848. jpeg",
+    image: "images/IMG_9848.jpeg",
     question:
       "MCQ 11 – The radiological appearance shown is most classically associated with:",
     options: [
@@ -161,7 +161,7 @@ window.questions = [
   },
   {
     id: 12,
-    image: "images/IMG_9847. jpeg",
+    image: "images/IMG_9847.jpeg",
     question:
       "MCQ 12 – The metaphyseal beak-like projection shown in the image is characteristic of:",
     options: [
@@ -175,7 +175,7 @@ window.questions = [
   },
   {
     id: 13,
-    image: "images/IMG_9846. jpeg",
+    image: "images/IMG_9846.jpeg",
     question:
       "MCQ 13 – Ground-glass appearance in bone X-ray is most characteristic of:",
     options: [
@@ -189,7 +189,7 @@ window.questions = [
   },
   {
     id: 14,
-    image: "images/IMG_9844. jpeg",
+    image: "images/IMG_9844.jpeg",
     question:
       "MCQ 14 – The imaging finding shown is most suggestive of:",
     options: [
@@ -620,7 +620,7 @@ window.questions = [
   },
   {
     id: 60,
-    image: "images/IMG_9845. jpeg",
+    image: "images/IMG_9845.jpeg",
     question:
       "MCQ 60: A newborn presents with severe cyanosis within a few hours of birth. The chest X-ray shows an oval-shaped cardiac shadow with a narrow superior mediastinum, giving an appearance of an “egg on a string.” Lung fields appear plethoric.\n\nWhat is the MOST LIKELY diagnosis?",
     options: ["Tetralogy of Fallot","Transposition of the Great Arteries","Total anomalous pulmonary venous return","Tricuspid atresia"],
