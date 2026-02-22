@@ -32,6 +32,52 @@
     <div class="small">After login you will be redirected to the exam.</div>
   </div>
 
-  <script src="login.js"></script>
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbwyFqjWYNDeC6H2TAbwSO0wld-9-DgsU-Kq7UGYzSoj4-2gYrr0Yu8tipL1uEPm2Ybnkw/exec";
+
+const msg = document.getElementById("msg");
+function setMsg(text, ok=false){
+  msg.textContent = text;
+  msg.className = ok ? "msg ok" : "msg";
+}
+function safeJsonParse(str){ try { return JSON.parse(str); } catch { return null; } }
+
+// If already logged in, go to exam
+const existing = safeJsonParse(localStorage.getItem("neet_candidate") || "");
+if (existing && existing.token && existing.id) window.location.href = "index.html";
+
+document.getElementById("loginBtn").addEventListener("click", async () => {
+  const id = document.getElementById("cid").value.trim();
+  const password = document.getElementById("pwd").value.trim();
+  if (!id || !password) return setMsg("Enter Candidate ID and Password.");
+
+  setMsg("Checking...", true);
+
+  try{
+    const res = await fetch(API_URL, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ action:"login", id, password })
+    });
+
+    const text = await res.text();
+    const data = safeJsonParse(text);
+
+    if (!data) return setMsg("Invalid server response. Check Apps Script deployment.");
+    if (data.status !== "success") return setMsg("Invalid ID or Password.");
+
+    localStorage.setItem("neet_candidate", JSON.stringify({
+      id: data.id || id,
+      name: data.name || "",
+      token: data.token || ("t_"+Math.random().toString(36).slice(2))
+    }));
+
+    setMsg("Login success. Redirecting...", true);
+    window.location.href = "index.html";
+  } catch (err) {
+    setMsg("Network error: " + (err?.message || "Unknown"));
+  }
+});
+</script>
 </body>
 </html>
