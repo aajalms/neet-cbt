@@ -1,124 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>NEET PG CBT - Result</title>
-
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css"/>
 </head>
-
-<body>
-  <header class="topbar">
-    <div class="brand">NEET PG CBT</div>
-    <div class="meta">
-      <span>Result</span>
-      <span class="sep">|</span>
-      <span>Candidate: <b id="topName">-</b></span>
-      <span class="sep">|</span>
-      <span>ID: <b id="topId">-</b></span>
-    </div>
-  </header>
-
-  <div class="container">
-    <div class="box">
-      <h2 class="section-title">Score Card</h2>
-
-      <div class="result-grid">
-        <div class="card"><b>Name</b><span id="name">-</span></div>
-        <div class="card"><b>Candidate ID</b><span id="cid">-</span></div>
-
-        <div class="card"><b>Score</b><span id="score">-</span></div>
-        <div class="card"><b>Correct</b><span id="correct">-</span></div>
-
-        <div class="card"><b>Wrong</b><span id="wrong">-</span></div>
-        <div class="card"><b>Unattempted</b><span id="unattempted">-</span></div>
-
-        <div class="card"><b>Time Taken</b><span id="timeTaken">-</span></div>
-        <div class="card"><b>Violations</b><span id="violations">-</span></div>
-      </div>
-
-      <div id="msg" class="msg"></div>
-
-      <div class="row">
-        <button class="btn secondary" id="backBtn">Back to Exam</button>
-        <button class="btn" id="logoutBtn">Logout</button>
-      </div>
-
-      <div class="small">This is a CBT practice portal. Result shown is based on submitted answers.</div>
-    </div>
+<body class="center">
+  <div class="card" style="max-width:800px">
+    <h2>Result</h2>
+    <div id="out"></div>
+    <button id="logout">Logout</button>
   </div>
 
-<script>
-function safeJsonParse(str){
-  try { return JSON.parse(str); } catch { return null; }
-}
-
-const msg = document.getElementById("msg");
-function setMsg(text, type="warn"){
-  msg.style.display = "block";
-  msg.textContent = text;
-  msg.className = "msg";
-  if (type === "ok") msg.classList.add("ok");
-  if (type === "err") msg.classList.add("err");
-}
-
-// Candidate session
-const candidate = safeJsonParse(localStorage.getItem("neet_candidate") || "");
-
-// If not logged in, go back to login
-if (!candidate || !candidate.token || !candidate.id){
-  window.location.href = "login.html";
-}
-
-// Result object (your exam should save this)
-const result =
-  safeJsonParse(localStorage.getItem("neet_result") || "") ||
-  safeJsonParse(sessionStorage.getItem("neet_result") || "");
-
-// Fill candidate top bar
-document.getElementById("topName").textContent = candidate.name || "Candidate";
-document.getElementById("topId").textContent = candidate.id || "-";
-
-// Fill fields
-document.getElementById("name").textContent = candidate.name || "-";
-document.getElementById("cid").textContent = candidate.id || "-";
-
-if (!result){
-  // Still keep page working even if result missing
-  setMsg("Result data not found. Please submit the exam first.", "err");
-  document.getElementById("score").textContent = "-";
-  document.getElementById("correct").textContent = "-";
-  document.getElementById("wrong").textContent = "-";
-  document.getElementById("unattempted").textContent = "-";
-  document.getElementById("timeTaken").textContent = "-";
-  document.getElementById("violations").textContent = "0";
-} else {
-  document.getElementById("score").textContent = result.score ?? "-";
-  document.getElementById("correct").textContent = result.correct ?? "-";
-  document.getElementById("wrong").textContent = result.wrong ?? "-";
-  document.getElementById("unattempted").textContent = result.unattempted ?? "-";
-  document.getElementById("timeTaken").textContent = result.timeTaken ?? "-";
-  document.getElementById("violations").textContent = result.violations ?? "0";
-}
-
-document.getElementById("backBtn").addEventListener("click", () => {
-  // ✅ Change to your exam page if different
-  window.location.href = "index.html";
-});
-
-document.getElementById("logoutBtn").addEventListener("click", () => {
-  localStorage.removeItem("neet_candidate");
-  // keep result or remove it? (remove to prevent old result showing)
-  localStorage.removeItem("neet_result");
-  sessionStorage.removeItem("neet_result");
-  window.location.href = "login.html";
-});
-
-// Optional: prevent going back to exam after logout using browser back
-history.pushState(null, "", location.href);
-window.addEventListener("popstate", () => history.pushState(null, "", location.href));
-</script>
-
+  <script src="result.js"></script>
 </body>
 </html>
