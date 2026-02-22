@@ -117,7 +117,7 @@ window.questions = [
   },
   {
     id: 9,
-    image: "images/IMG_9941.jpeg",
+    image: "images/IMG_9841.jpeg",
     question:
       "MCQ 9: The “bunch of grapes” appearance seen on HRCT chest is characteristic of:",
     options: [
