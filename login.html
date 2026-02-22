@@ -41,10 +41,11 @@
    LOGIN -> Apps Script -> token saved in localStorage
    ========================= */
 
-// ✅ PASTE your Apps Script Web App URL here:
+// ✅ Your Apps Script Web App URL (/exec)
 const API_URL = "https://script.google.com/macros/s/AKfycbyrR6uJDuFZBkbrtbjiTuIrKB31alvPWVmz4znmccpqPR_u1TLIqxYfziq9QJObdWBL/exec";
 
 const msg = document.getElementById("msg");
+const loginBtn = document.getElementById("loginBtn");
 
 function setMsg(text, type="warn"){
   msg.style.display = "block";
@@ -59,48 +60,60 @@ function safeJsonParse(str){
   try { return JSON.parse(str); } catch { return null; }
 }
 
-// If already logged in, go to exam or result depending on your flow.
-// If your project starts exam from index.html, keep index.html.
+// If already logged in, go to exam
 const existing = safeJsonParse(localStorage.getItem("neet_candidate") || "");
 if (existing && existing.token && existing.id) {
-  // ✅ Change this if your exam page is different:
   window.location.href = "index.html";
+}
+
+async function postApi(payload){
+  // ✅ IMPORTANT: text/plain avoids CORS preflight (works on Safari/iPhone)
+  const res = await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type":"text/plain;charset=utf-8" },
+    body: JSON.stringify(payload)
+  });
+
+  // Apps Script always returns text; parse safely
+  const txt = await res.text();
+  const data = safeJsonParse(txt);
+
+  if (!data) {
+    throw new Error("Invalid JSON from server: " + txt.slice(0, 120));
+  }
+  return data;
 }
 
 document.getElementById("loginBtn").addEventListener("click", async () => {
   const fullName = document.getElementById("fullName").value.trim();
   const phone = document.getElementById("phone").value.trim();
   const email = document.getElementById("email").value.trim();
-  const id = document.getElementById("cid").value.trim();
+  const candidateId = document.getElementById("cid").value.trim();
   const password = document.getElementById("pwd").value.trim();
 
-  if (!id || !password) return setMsg("Enter Candidate ID and Password.", "err");
+  if (!candidateId || !password) return setMsg("Enter Candidate ID and Password.", "err");
+  if (!fullName || !phone || !email) return setMsg("Enter Full Name, Phone, and Email.", "err");
 
+  loginBtn.disabled = true;
   setMsg("Checking...", "ok");
 
   try{
-    const res = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type":"application/json" },
-      body: JSON.stringify({
-        action: "login",
-        id,
-        password,
-        fullName,
-        phone,
-        email
-      })
+    const data = await postApi({
+      action: "login",
+      candidateId,     // ✅ matches your Apps Script backend
+      password,
+      name: fullName,  // ✅ matches backend (expects body.name)
+      phone,
+      email
     });
 
-    const data = await res.json();
-
-    if (!data || data.ok !== true) {
-      return setMsg(data?.message || "Login failed.", "err");
+    if (!data.ok) {
+      return setMsg(data.error || "Login failed.", "err");
     }
 
-    // Save candidate session
+    // Save candidate session (keep keys used by your frontend)
     localStorage.setItem("neet_candidate", JSON.stringify({
-      id: data.id || id,
+      id: data.candidateId || candidateId,
       name: data.name || fullName || "Candidate",
       phone: data.phone || phone || "",
       email: data.email || email || "",
@@ -109,13 +122,13 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
     }));
 
     setMsg("Login successful. Redirecting...", "ok");
-
-    // ✅ Change this if your exam page is different:
     window.location.href = "index.html";
 
   } catch (e){
     console.error(e);
-    setMsg("Network / API error. Check Web App URL & deployment access.", "err");
+    setMsg("Network / API error. Check Web App access = Anyone + use /exec. " + (e.message ? ("(" + e.message + ")") : ""), "err");
+  } finally {
+    loginBtn.disabled = false;
   }
 });
 </script>
