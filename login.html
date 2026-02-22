@@ -15,7 +15,10 @@
     <input id="phone" placeholder="Phone Number" inputmode="numeric" autocomplete="tel" />
     <input id="email" placeholder="Email" type="email" autocomplete="email" />
     <input id="cid" placeholder="Candidate ID" autocomplete="username" />
-    <input id="pwd" type="password" placeholder="Password" autocomplete="current-password" />
+    <div class="pwd-wrap">
+  <input id="pwd" type="password" placeholder="Password" />
+  <span id="togglePwd" class="eye">👁</span>
+</div>
 
     <!-- IMPORTANT: type="button" prevents form submit/reload issues -->
     <button id="loginBtn" type="button">Login</button>
