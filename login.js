@@ -1,56 +1,49 @@
-/***********************
- LOGIN -> Apps Script -> token stored in localStorage
-***********************/
-
-// ✅ PASTE your Apps Script Web App URL here:
-const API_URL = "PASTE_YOUR_WEB_APP_URL_HERE";
-
 const msg = document.getElementById("msg");
 
-function setMsg(text, ok=false){
-  msg.textContent = text;
-  msg.className = ok ? "msg ok" : "msg";
+function setMsg(t, ok=false){
+  msg.textContent = t;
+  msg.style.color = ok ? "green" : "crimson";
 }
 
-function safeJsonParse(str){
-  try { return JSON.parse(str); } catch { return null; }
-}
+function safeParse(s){ try{return JSON.parse(s)}catch{return null} }
 
-// If already logged in, go to exam directly
-const existing = safeJsonParse(localStorage.getItem("neet_candidate") || "");
-if (existing && existing.token && existing.id) {
-  window.location.href = "index.html";
-}
+const existing = safeParse(localStorage.getItem("neet_candidate")||"");
+if (existing && existing.token) location.href = "exam.html";
 
 document.getElementById("loginBtn").addEventListener("click", async () => {
-  const id = document.getElementById("cid").value.trim();
+  const name = document.getElementById("name").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const candidateId = document.getElementById("cid").value.trim();
   const password = document.getElementById("pwd").value.trim();
 
-  if (!id || !password) return setMsg("Enter Candidate ID and Password.");
+  if(!name||!phone||!email||!candidateId||!password) return setMsg("Fill all fields.");
 
   setMsg("Checking...", true);
 
   try{
-    const res = await fetch(API_URL, {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ action:"login", id, password })
+    const res = await fetch(window.API_URL, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ action:"login", name, phone, email, candidateId, password })
     });
-
     const data = await res.json();
-
-    if (!data.ok) return setMsg(data.error || "Login failed");
+    if(!data.ok) return setMsg(data.error || "Login failed");
 
     localStorage.setItem("neet_candidate", JSON.stringify({
-      id: data.id,
-      name: data.name || "",
       token: data.token,
-      loginAt: new Date().toISOString()
+      candidateId: data.candidateId,
+      name: data.name,
+      phone: data.phone,
+      email: data.email
     }));
 
-    setMsg("Login success. Redirecting...", true);
-    window.location.href = "index.html";
-  } catch(e){
-    setMsg("Network error: " + e);
+    // reset exam storage
+    localStorage.removeItem("neet_exam_state");
+    localStorage.removeItem("neet_submitted");
+
+    location.href = "exam.html";
+  }catch(e){
+    setMsg("Network error: " + e.message);
   }
 });
