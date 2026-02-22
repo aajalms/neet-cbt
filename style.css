@@ -103,3 +103,22 @@ body{ margin:0; font-family:Arial, sans-serif; background:#eef2f7; }
   .layout{ flex-direction: column; }
   .palette{ width: auto; border-left:none; border-top:1px solid #ddd; }
 }
+
+.pwd-wrap {
+  position: relative;
+}
+
+.pwd-wrap input {
+  width: 100%;
+  padding-right: 40px;
+}
+
+.eye {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  user-select: none;
+  font-size: 18px;
+}
