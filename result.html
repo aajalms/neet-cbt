@@ -1,105 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>NEET PG CBT - Result</title>
-  <style>
-    body{margin:0;font-family:Arial;background:#eef2f7;padding:20px;}
-    .box{max-width:900px;margin:auto;background:#fff;border-radius:8px;padding:18px;box-shadow:0 2px 10px rgba(0,0,0,.08);}
-    h2{margin:0 0 10px;background:#003366;color:#fff;padding:10px;border-radius:6px;}
-    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px;}
-    .card{background:#f7f7f7;padding:12px;border-left:5px solid #003366;border-radius:6px;}
-    .small{font-size:12px;color:#666;}
-    .btn{margin-top:14px;background:#003366;color:#fff;border:none;padding:10px 14px;border-radius:8px;font-weight:700;cursor:pointer;}
-    .btn2{margin-left:10px;background:#e74c3c;}
-    .shots{margin-top:18px;}
-    .shot{background:#fff;border:1px solid #d9dde5;border-radius:8px;padding:10px;margin-bottom:10px;}
-    img{max-width:100%;border-radius:6px;}
-    .badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700;}
-    .ok{background:#d7f5df;color:#0a7a2d;}
-    .bad{background:#ffe0e0;color:#b00020;}
-  </style>
+  <link rel="stylesheet" href="style.css"/>
 </head>
-<body>
-  <div class="box">
-    <h2>NEET PG CBT - Result</h2>
-
-    <div class="small" id="meta"></div>
-    <div class="small" id="uploadStatus"></div>
-
-    <div class="grid">
-      <div class="card"><b>Correct</b><div id="correct">0</div></div>
-      <div class="card"><b>Wrong</b><div id="wrong">0</div></div>
-      <div class="card"><b>Unattempted</b><div id="unattempted">0</div></div>
-      <div class="card"><b>Marks</b><div id="marks">0</div></div>
-    </div>
-
-    <button class="btn" id="restart">Restart Test</button>
-    <button class="btn btn2" id="logout">Logout</button>
-
-    <div class="shots">
-      <h3>Proctoring Screenshots</h3>
-      <div class="small">Captured during violations (if browser allowed).</div>
-      <div id="shotsList"></div>
-    </div>
+<body class="center">
+  <div class="card" style="max-width:800px">
+    <h2>Result</h2>
+    <div id="out"></div>
+    <button id="logout">Logout</button>
   </div>
 
-<script>
-const LS_KEY = "neet_cbt_state_v2";
-function $(id){ return document.getElementById(id); }
-function safeJsonParse(str){ try { return JSON.parse(str); } catch { return null; } }
-
-const state = safeJsonParse(localStorage.getItem(LS_KEY) || "");
-const cand  = safeJsonParse(localStorage.getItem("neet_candidate") || "");
-
-if (!state || !state.result) {
-  $("meta").textContent = "No result found. Please start the test again.";
-  $("uploadStatus").innerHTML = "";
-} else {
-  const cname = cand ? `${cand.id || ""}${cand.name ? " - " + cand.name : ""}` : "Unknown";
-
-  $("meta").textContent =
-    `Candidate: ${cname} | Status: ${state.result.reason} | Submitted: ${state.result.submittedAt} | Violations: ${state.result.violations}`;
-
-  const uploaded = state._uploaded === true;
-  $("uploadStatus").innerHTML =
-    uploaded
-      ? `<span class="badge ok">Uploaded to Google Sheet</span>`
-      : `<span class="badge bad">Upload not confirmed (check internet / Apps Script)</span>`;
-
-  $("correct").textContent = state.result.correct;
-  $("wrong").textContent = state.result.wrong;
-  $("unattempted").textContent = state.result.unattempted;
-  $("marks").textContent = `${state.result.marks} / ${state.result.total}`;
-
-  const shots = state.violationShots || [];
-  const wrap = $("shotsList");
-  wrap.innerHTML = "";
-
-  if (shots.length === 0) {
-    wrap.innerHTML = "<div class='small'>No screenshots captured.</div>";
-  } else {
-    shots.forEach((s, idx) => {
-      const div = document.createElement("div");
-      div.className = "shot";
-      div.innerHTML = `<b>Violation ${idx+1}</b> <div class="small">${s.at}</div><br/>
-                       <img src="${s.dataUrl}" alt="Violation screenshot"/>`;
-      wrap.appendChild(div);
-    });
-  }
-}
-
-$("restart").addEventListener("click", () => {
-  localStorage.removeItem(LS_KEY);
-  window.location.href = "index.html";
-});
-
-$("logout").addEventListener("click", () => {
-  localStorage.removeItem("neet_candidate");
-  localStorage.removeItem(LS_KEY);
-  window.location.href = "login.html";
-});
-</script>
+  <script src="result.js"></script>
 </body>
 </html>
