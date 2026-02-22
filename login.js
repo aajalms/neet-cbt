@@ -23,10 +23,13 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
 
   try{
     const res = await fetch(window.API_URL, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ action:"login", name, phone, email, candidateId, password })
-    });
+  method: "POST",
+  headers: { "Content-Type": "text/plain;charset=utf-8" }, // ✅ NO CORS preflight
+  body: JSON.stringify({
+    action: "login",
+    name, phone, email, candidateId, password
+  })
+});
     const data = await res.json();
     if(!data.ok) return setMsg(data.error || "Login failed");
 
