@@ -1,3 +1,4 @@
+<!-- exam.html -->
 <!doctype html>
 <html>
 <head>
@@ -9,9 +10,9 @@
 <body>
   <header class="topbar">
     <div><b>NEET PG CBT</b></div>
-    <div>
+    <div class="meta">
       Time Left: <b id="timeLeft">60:00</b>
-      &nbsp; | &nbsp;
+      <span class="sep">|</span>
       Violations: <b id="vio">0</b>
     </div>
   </header>
@@ -23,8 +24,14 @@
 
         <div id="qText" class="qtext"></div>
 
-        <!-- ✅ Image will be injected here by exam.js -->
-        <div id="qImgWrap"></div>
+        <!-- IMAGE AREA (works if question has image: "images/xxx.jpeg") -->
+        <div id="qImgWrap" class="qimgwrap" hidden>
+          <div class="qimglabel">Question image</div>
+          <img id="qImg" class="qimg" alt="Question image" />
+          <div id="qImgErr" class="qimgerr" hidden>
+            Image not found. Check file name + extension in <b>questions.js</b> and ensure it is committed in <b>/images</b>.
+          </div>
+        </div>
 
         <div id="opts" class="opts"></div>
 
@@ -52,18 +59,6 @@
         <div><span class="dot ansreview"></span> Answered + Marked</div>
       </div>
     </aside>
-  </div>
-
-  <!-- ✅ Image Zoom Modal -->
-  <div id="imgModal" class="img-modal" aria-hidden="true">
-    <div class="img-modal-top">
-      <button id="imgFullBtn" class="img-btn">⛶ Fullscreen</button>
-      <button id="imgCloseBtn" class="img-btn danger">✕ Close</button>
-    </div>
-
-    <div class="img-modal-body">
-      <img id="imgModalPic" alt="Question image enlarged" />
-    </div>
   </div>
 
   <script src="config.js"></script>
