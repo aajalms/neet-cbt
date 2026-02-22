@@ -19,8 +19,8 @@ image: "images/IMG_9833.jpg",
   },
   {
     id: 2,
-    question:
 image: "images/IMG_9834.jpg",
+    question:
       "MCQ 2: A CT scan of the abdomen done for abdominal pain shows both kidneys located lower than normal and fused at their lower poles across the midline, anterior to the aorta.\n\nWhat is the diagnosis?",
     options: [
       "Polycystic kidney disease",
