@@ -1,26 +1,104 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>NEET PG CBT - Login</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8">
+<title>NEET PG CBT - Login</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#eef2f7;
+}
+
+.header{
+  background:#003366;
+  color:white;
+  padding:15px;
+  text-align:center;
+  font-size:20px;
+  font-weight:bold;
+}
+
+.container{
+  max-width:800px;
+  margin:60px auto;
+  background:white;
+  padding:30px;
+  border-radius:6px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.1);
+}
+
+h2{
+  margin-top:0;
+  margin-bottom:25px;
+  color:#003366;
+}
+
+.form-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+}
+
+input{
+  padding:10px;
+  font-size:14px;
+  border:1px solid #ccc;
+  border-radius:4px;
+  width:100%;
+}
+
+.full{
+  grid-column:1 / -1;
+}
+
+button{
+  background:#003366;
+  color:white;
+  border:none;
+  padding:12px;
+  font-size:15px;
+  border-radius:4px;
+  cursor:pointer;
+}
+
+button:hover{
+  background:#0055aa;
+}
+
+.footer{
+  text-align:center;
+  margin-top:30px;
+  color:#666;
+  font-size:12px;
+}
+</style>
 </head>
-<body class="center">
-  <div class="card">
-    <h2>NEET PG CBT Login</h2>
 
-    <input id="name" placeholder="Full Name" />
-    <input id="phone" placeholder="Phone Number" />
-    <input id="email" placeholder="Email" />
-    <input id="cid" placeholder="Candidate ID" />
-    <input id="pwd" type="password" placeholder="Password" />
+<body>
 
-    <button id="loginBtn">Login</button>
-    <p id="msg"></p>
-  </div>
+<div class="header">
+NEET PG CBT Examination Portal
+</div>
 
-  <script src="config.js"></script>
-  <script src="login.js"></script>
+<div class="container">
+<h2>Candidate Login</h2>
+
+<div class="form-grid">
+  <input type="text" placeholder="Full Name">
+  <input type="text" placeholder="Phone Number">
+  <input type="email" placeholder="Email">
+  <input type="text" placeholder="Candidate ID">
+  <input type="password" placeholder="Password" class="full">
+  <button class="full">Login</button>
+</div>
+
+<div class="footer">
+© 2026 NEET PG CBT | All Rights Reserved
+</div>
+</div>
+
 </body>
 </html>
