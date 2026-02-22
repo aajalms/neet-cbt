@@ -25,7 +25,7 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
   setMsg("Checking...", true);
 
   try{
-    const res = await fetch(window.API_URL, {
+    const res = await fetch(window.API_URL = "https://script.google.com/macros/s/AKfycbyrR6uJDuFZBkbrtbjiTuIrKB31alvPWVmz4znmccpqPR_u1TLIqxYfziq9QJObdWBL/exec";
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" }, // ✅ NO CORS preflight
       body: JSON.stringify({
