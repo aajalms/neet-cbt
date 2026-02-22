@@ -68,3 +68,18 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
     setMsg("Network error: " + e.message);
   }
 });
+
+const pwd = document.getElementById("pwd");
+const toggle = document.getElementById("togglePwd");
+
+if (toggle) {
+  toggle.addEventListener("click", () => {
+    if (pwd.type === "password") {
+      pwd.type = "text";
+      toggle.textContent = "🙈";
+    } else {
+      pwd.type = "password";
+      toggle.textContent = "👁";
+    }
+  });
+}
