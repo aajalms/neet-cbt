@@ -145,8 +145,8 @@ function calcResult(){
 
 async function api(body){
   const res = await fetch(window.API_URL, {
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" }, // ✅ NO preflight
     body: JSON.stringify(body)
   });
   return await res.json();
