@@ -1,83 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Candidate Login - NEET PG CBT</title>
-  <style>
-    body{font-family:Arial;background:#eef2f7;margin:0;padding:20px;}
-    .box{max-width:420px;margin:60px auto;background:#fff;padding:20px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.08);}
-    h2{margin:0 0 14px;background:#003366;color:#fff;padding:10px;border-radius:8px;}
-    label{display:block;margin-top:12px;font-weight:700;}
-    input{width:100%;padding:10px;border:1px solid #cfd6e2;border-radius:8px;margin-top:6px;font-size:16px;}
-    button{margin-top:16px;width:100%;padding:11px;background:#003366;color:#fff;border:none;border-radius:8px;font-weight:800;font-size:16px;cursor:pointer;}
-    .msg{margin-top:12px;font-size:14px;color:#b00020;}
-    .ok{color:#0a7a2d;}
-    .small{margin-top:10px;font-size:12px;color:#666;}
-  </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NEET PG CBT - Login</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-<body>
-  <div class="box">
-    <h2>Candidate Login</h2>
+<body class="center">
+  <div class="card">
+    <h2>NEET PG CBT Login</h2>
 
-    <label>Candidate ID</label>
-    <input id="cid" placeholder="e.g. 1001" autocomplete="username"/>
-
-    <label>Password</label>
-    <input id="pwd" type="password" placeholder="Your password" autocomplete="current-password"/>
+    <input id="name" placeholder="Full Name" />
+    <input id="phone" placeholder="Phone Number" />
+    <input id="email" placeholder="Email" />
+    <input id="cid" placeholder="Candidate ID" />
+    <input id="pwd" type="password" placeholder="Password" />
 
     <button id="loginBtn">Login</button>
-
-    <div id="msg" class="msg"></div>
-    <div class="small">After login you will be redirected to the exam.</div>
+    <p id="msg"></p>
   </div>
 
-<script>
-const API_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AY5xjrT-ohPL2p7aO-jlSCIWTX1UUj-s6KR9JKib9L7jdsIIHoWOGmknmIJTIaAFx7NEGcvpaqUoKlXZvrHPe8LrdaX4pwsfipybPip3g6PlwRu_D9wA8bLrejjXL-ZkUL86xUy3gHGpV_a5jJgp2BCg3Hble9jgXeNwUXf8A5NWzSYBTGSpWeMbcZjX4x0yFHFrYYQgZwUTDVP5Xe5pZLK2Nm_LX-NgD9XdSxHbIkxZaLL2_cNTeBfqWgWhoVDnfOQttoWJO3FlYqq9cp7aH3nyEL17fF3CiqxYaIaDGTHg&lib=Muq14uO_y_8dQ7mCTIwJby0Pz-ITeD0WS";
-
-const msg = document.getElementById("msg");
-function setMsg(text, ok=false){
-  msg.textContent = text;
-  msg.className = ok ? "msg ok" : "msg";
-}
-function safeJsonParse(str){ try { return JSON.parse(str); } catch { return null; } }
-
-// If already logged in, go to exam
-const existing = safeJsonParse(localStorage.getItem("neet_candidate") || "");
-if (existing && existing.token && existing.id) window.location.href = "index.html";
-
-document.getElementById("loginBtn").addEventListener("click", async () => {
-  const id = document.getElementById("cid").value.trim();
-  const password = document.getElementById("pwd").value.trim();
-  if (!id || !password) return setMsg("Enter Candidate ID and Password.");
-
-  setMsg("Checking...", true);
-
-  try{
-    const res = await fetch(API_URL, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ action:"login", id, password })
-    });
-
-    const text = await res.text();
-    const data = safeJsonParse(text);
-
-    if (!data) return setMsg("Invalid server response. Check Apps Script deployment.");
-    if (data.status !== "success") return setMsg("Invalid ID or Password.");
-
-    localStorage.setItem("neet_candidate", JSON.stringify({
-      id: data.id || id,
-      name: data.name || "",
-      token: data.token || ("t_"+Math.random().toString(36).slice(2))
-    }));
-
-    setMsg("Login success. Redirecting...", true);
-    window.location.href = "index.html";
-  } catch (err) {
-    setMsg("Network error: " + (err?.message || "Unknown"));
-  }
-});
-</script>
+  <script src="config.js"></script>
+  <script src="login.js"></script>
 </body>
 </html>
