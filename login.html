@@ -1,26 +1,31 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>NEET PG CBT - Login</title>
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body class="center">
   <div class="card">
     <h2>NEET PG CBT Login</h2>
 
-    <input id="name" placeholder="Full Name" />
-    <input id="phone" placeholder="Phone Number" />
-    <input id="email" placeholder="Email" />
-    <input id="cid" placeholder="Candidate ID" />
-    <input id="pwd" type="password" placeholder="Password" />
+    <input id="name" placeholder="Full Name" autocomplete="name" />
+    <input id="phone" placeholder="Phone Number" inputmode="numeric" autocomplete="tel" />
+    <input id="email" placeholder="Email" type="email" autocomplete="email" />
+    <input id="cid" placeholder="Candidate ID" autocomplete="username" />
+    <input id="pwd" type="password" placeholder="Password" autocomplete="current-password" />
 
-    <button id="loginBtn">Login</button>
+    <!-- IMPORTANT: type="button" prevents form submit/reload issues -->
+    <button id="loginBtn" type="button">Login</button>
+
     <p id="msg"></p>
   </div>
 
-  <script src="config.js"></script>
-  <script src="login.js"></script>
+  <!-- Load config first, then login.js -->
+  <!-- Cache-bust to avoid GitHub Pages old JS -->
+  <script src="config.js?v=2"></script>
+  <script src="login.js?v=2"></script>
 </body>
 </html>
