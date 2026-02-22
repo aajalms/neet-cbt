@@ -20,7 +20,12 @@
     <main class="main">
       <div class="qbox">
         <div id="qTitle" class="qtitle"></div>
+
         <div id="qText" class="qtext"></div>
+
+        <!-- ✅ Image will be injected here by exam.js -->
+        <div id="qImgWrap"></div>
+
         <div id="opts" class="opts"></div>
 
         <div class="actions">
@@ -39,6 +44,7 @@
     <aside class="palette">
       <h3>Questions</h3>
       <div id="pal"></div>
+
       <div class="legend">
         <div><span class="dot unanswered"></span> Unanswered</div>
         <div><span class="dot answered"></span> Answered</div>
@@ -46,6 +52,18 @@
         <div><span class="dot ansreview"></span> Answered + Marked</div>
       </div>
     </aside>
+  </div>
+
+  <!-- ✅ Image Zoom Modal -->
+  <div id="imgModal" class="img-modal" aria-hidden="true">
+    <div class="img-modal-top">
+      <button id="imgFullBtn" class="img-btn">⛶ Fullscreen</button>
+      <button id="imgCloseBtn" class="img-btn danger">✕ Close</button>
+    </div>
+
+    <div class="img-modal-body">
+      <img id="imgModalPic" alt="Question image enlarged" />
+    </div>
   </div>
 
   <script src="config.js"></script>
