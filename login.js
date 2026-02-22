@@ -7,6 +7,7 @@ function setMsg(t, ok=false){
 
 function safeParse(s){ try{return JSON.parse(s)}catch{return null} }
 
+// If already logged in, go to exam
 const existing = safeParse(localStorage.getItem("neet_candidate")||"");
 if (existing && existing.token) location.href = "exam.html";
 
@@ -17,22 +18,33 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
   const candidateId = document.getElementById("cid").value.trim();
   const password = document.getElementById("pwd").value.trim();
 
-  if(!name||!phone||!email||!candidateId||!password) return setMsg("Fill all fields.");
+  if(!name || !phone || !email || !candidateId || !password){
+    return setMsg("Fill all fields.");
+  }
 
   setMsg("Checking...", true);
 
   try{
     const res = await fetch(window.API_URL, {
-  method: "POST",
-  headers: { "Content-Type": "text/plain;charset=utf-8" }, // ✅ NO CORS preflight
-  body: JSON.stringify({
-    action: "login",
-    name, phone, email, candidateId, password
-  })
-});
-    const data = await res.json();
-    if(!data.ok) return setMsg(data.error || "Login failed");
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" }, // ✅ NO CORS preflight
+      body: JSON.stringify({
+        action: "login",
+        name,
+        phone,
+        email,
+        candidateId,
+        password
+      })
+    });
 
+    const data = await res.json();
+
+    if(!data.ok){
+      return setMsg(data.error || "Login failed");
+    }
+
+    // ✅ Store exactly what Apps Script returns
     localStorage.setItem("neet_candidate", JSON.stringify({
       token: data.token,
       candidateId: data.candidateId,
@@ -41,9 +53,10 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
       email: data.email
     }));
 
-    // reset exam storage
+    // reset exam storage for fresh attempt
     localStorage.removeItem("neet_exam_state");
     localStorage.removeItem("neet_submitted");
+    localStorage.removeItem("neet_result");
 
     location.href = "exam.html";
   }catch(e){
