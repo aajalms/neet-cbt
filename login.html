@@ -1,104 +1,124 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>NEET PG CBT - Login</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NEET PG CBT - Login</title>
 
-<style>
-body{
-  margin:0;
-  font-family:Arial, sans-serif;
-  background:#eef2f7;
-}
-
-.header{
-  background:#003366;
-  color:white;
-  padding:15px;
-  text-align:center;
-  font-size:20px;
-  font-weight:bold;
-}
-
-.container{
-  max-width:800px;
-  margin:60px auto;
-  background:white;
-  padding:30px;
-  border-radius:6px;
-  box-shadow:0 4px 12px rgba(0,0,0,0.1);
-}
-
-h2{
-  margin-top:0;
-  margin-bottom:25px;
-  color:#003366;
-}
-
-.form-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:20px;
-}
-
-input{
-  padding:10px;
-  font-size:14px;
-  border:1px solid #ccc;
-  border-radius:4px;
-  width:100%;
-}
-
-.full{
-  grid-column:1 / -1;
-}
-
-button{
-  background:#003366;
-  color:white;
-  border:none;
-  padding:12px;
-  font-size:15px;
-  border-radius:4px;
-  cursor:pointer;
-}
-
-button:hover{
-  background:#0055aa;
-}
-
-.footer{
-  text-align:center;
-  margin-top:30px;
-  color:#666;
-  font-size:12px;
-}
-</style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
+  <header class="topbar">
+    <div class="brand">NEET PG CBT</div>
+    <div class="meta">
+      <span>Candidate Login</span>
+    </div>
+  </header>
 
-<div class="header">
-NEET PG CBT Examination Portal
-</div>
+  <div class="container">
+    <div class="box">
+      <h2 class="section-title">Candidate Login</h2>
 
-<div class="container">
-<h2>Candidate Login</h2>
+      <div class="grid">
+        <input id="fullName" type="text" placeholder="Full Name" autocomplete="name">
+        <input id="phone" type="text" placeholder="Phone Number" autocomplete="tel">
+        <input id="email" type="email" placeholder="Email" autocomplete="email">
+        <input id="cid" type="text" placeholder="Candidate ID" autocomplete="username">
+        <input id="pwd" type="password" placeholder="Password" class="full" autocomplete="current-password">
 
-<div class="form-grid">
-  <input type="text" placeholder="Full Name">
-  <input type="text" placeholder="Phone Number">
-  <input type="email" placeholder="Email">
-  <input type="text" placeholder="Candidate ID">
-  <input type="password" placeholder="Password" class="full">
-  <button class="full">Login</button>
-</div>
+        <button id="loginBtn" class="btn full">Login</button>
+      </div>
 
-<div class="footer">
-© 2026 NEET PG CBT | All Rights Reserved
-</div>
-</div>
+      <div id="msg" class="msg"></div>
+
+      <div class="small">© 2026 NEET PG CBT | Examination Portal</div>
+    </div>
+  </div>
+
+<script>
+/* =========================
+   LOGIN -> Apps Script -> token saved in localStorage
+   ========================= */
+
+// ✅ PASTE your Apps Script Web App URL here:
+const API_URL = "PASTE_YOUR_WEB_APP_URL_HERE";
+
+const msg = document.getElementById("msg");
+
+function setMsg(text, type="warn"){
+  msg.style.display = "block";
+  msg.textContent = text;
+
+  msg.className = "msg";
+  if (type === "ok") msg.classList.add("ok");
+  if (type === "err") msg.classList.add("err");
+}
+
+function safeJsonParse(str){
+  try { return JSON.parse(str); } catch { return null; }
+}
+
+// If already logged in, go to exam or result depending on your flow.
+// If your project starts exam from index.html, keep index.html.
+const existing = safeJsonParse(localStorage.getItem("neet_candidate") || "");
+if (existing && existing.token && existing.id) {
+  // ✅ Change this if your exam page is different:
+  window.location.href = "index.html";
+}
+
+document.getElementById("loginBtn").addEventListener("click", async () => {
+  const fullName = document.getElementById("fullName").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const id = document.getElementById("cid").value.trim();
+  const password = document.getElementById("pwd").value.trim();
+
+  if (!id || !password) return setMsg("Enter Candidate ID and Password.", "err");
+
+  setMsg("Checking...", "ok");
+
+  try{
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type":"application/json" },
+      body: JSON.stringify({
+        action: "login",
+        id,
+        password,
+        fullName,
+        phone,
+        email
+      })
+    });
+
+    const data = await res.json();
+
+    if (!data || data.ok !== true) {
+      return setMsg(data?.message || "Login failed.", "err");
+    }
+
+    // Save candidate session
+    localStorage.setItem("neet_candidate", JSON.stringify({
+      id: data.id || id,
+      name: data.name || fullName || "Candidate",
+      phone: data.phone || phone || "",
+      email: data.email || email || "",
+      token: data.token,
+      loginTime: Date.now()
+    }));
+
+    setMsg("Login successful. Redirecting...", "ok");
+
+    // ✅ Change this if your exam page is different:
+    window.location.href = "index.html";
+
+  } catch (e){
+    console.error(e);
+    setMsg("Network / API error. Check Web App URL & deployment access.", "err");
+  }
+});
+</script>
 
 </body>
 </html>
