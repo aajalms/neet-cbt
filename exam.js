@@ -1,4 +1,5 @@
 function safeParse(s){ try{return JSON.parse(s)}catch{return null} }
+
 const cand = safeParse(localStorage.getItem("neet_candidate")||"");
 if(!cand || !cand.token) location.href = "login.html";
 
@@ -14,6 +15,7 @@ const elVio = document.getElementById("vio");
 const pal = document.getElementById("pal");
 const qTitle = document.getElementById("qTitle");
 const qText = document.getElementById("qText");
+const qImgWrap = document.getElementById("qImgWrap");
 const opts = document.getElementById("opts");
 
 const prevBtn = document.getElementById("prevBtn");
@@ -38,15 +40,17 @@ let state = safeParse(localStorage.getItem(KEY) || "") || defaultState();
 const durationMs = (window.EXAM_DURATION_MIN || 60) * 60 * 1000;
 
 function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
-
 function pad2(n){ return String(n).padStart(2,"0"); }
 
 function updateTimer(){
   const elapsed = Date.now() - state.startedAt;
   const left = Math.max(0, durationMs - elapsed);
+
   const mm = Math.floor(left/60000);
   const ss = Math.floor((left%60000)/1000);
+
   elTime.textContent = `${pad2(mm)}:${pad2(ss)}`;
+
   if(left <= 0){
     submitExam(true);
   }
@@ -72,10 +76,72 @@ function renderPalette(){
   });
 }
 
+/* =======================
+   ✅ IMAGE MODAL (ZOOM)
+======================= */
+const imgModal = document.getElementById("imgModal");
+const imgModalPic = document.getElementById("imgModalPic");
+const imgCloseBtn = document.getElementById("imgCloseBtn");
+const imgFullBtn = document.getElementById("imgFullBtn");
+
+function openImgModal(src){
+  imgModalPic.src = src;
+  imgModal.classList.add("show");
+  imgModal.setAttribute("aria-hidden", "false");
+}
+
+function closeImgModal(){
+  imgModal.classList.remove("show");
+  imgModal.setAttribute("aria-hidden", "true");
+}
+
+imgCloseBtn.addEventListener("click", closeImgModal);
+
+// Click outside image closes
+imgModal.addEventListener("click", (e) => {
+  if (e.target === imgModal) closeImgModal();
+});
+
+// ESC closes
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeImgModal();
+});
+
+// Fullscreen (may be blocked on iPhone for <img>, but works on many browsers)
+imgFullBtn.addEventListener("click", async () => {
+  try{
+    if (imgModalPic.requestFullscreen) {
+      await imgModalPic.requestFullscreen();
+    } else if (imgModal.requestFullscreen) {
+      await imgModal.requestFullscreen();
+    } else {
+      alert("Fullscreen not supported on this device/browser.");
+    }
+  }catch(err){
+    alert("Fullscreen blocked: " + err.message);
+  }
+});
+
 function render(){
   const q = Q[state.current];
+
   qTitle.textContent = `Question ${state.current+1} of ${totalQ}`;
   qText.textContent = q.question;
+
+  // ✅ Render image if present (q.image)
+  qImgWrap.innerHTML = "";
+  if (q.image) {
+    qImgWrap.className = "qimg-wrap";
+    const img = document.createElement("img");
+    img.className = "qimg";
+    img.src = q.image;
+    img.alt = "Question image";
+    img.title = "Tap to zoom";
+    img.onclick = () => openImgModal(q.image);
+    qImgWrap.appendChild(img);
+  } else {
+    qImgWrap.className = "";
+  }
 
   opts.innerHTML = "";
   const selected = state.answers[q.id];
@@ -108,8 +174,21 @@ function render(){
   elVio.textContent = String(state.violations);
 }
 
-prevBtn.onclick = () => { if(state.current>0){ state.current--; save(); render(); } };
-nextBtn.onclick = () => { if(state.current<totalQ-1){ state.current++; save(); render(); } };
+prevBtn.onclick = () => { 
+  if(state.current>0){ 
+    state.current--; 
+    save(); 
+    render(); 
+  } 
+};
+
+nextBtn.onclick = () => { 
+  if(state.current<totalQ-1){ 
+    state.current++; 
+    save(); 
+    render(); 
+  } 
+};
 
 clearBtn.onclick = () => {
   const q = Q[state.current];
@@ -146,7 +225,7 @@ function calcResult(){
 async function api(body){
   const res = await fetch(window.API_URL, {
     method: "POST",
-    headers: { "Content-Type": "text/plain;charset=utf-8" }, // ✅ NO preflight
+    headers: { "Content-Type": "text/plain;charset=utf-8" }, // ✅ NO CORS preflight (iPhone fix)
     body: JSON.stringify(body)
   });
   return await res.json();
@@ -170,8 +249,10 @@ function requestFullscreen(){
   if(el.requestFullscreen) el.requestFullscreen().catch(()=>{});
 }
 
-document.addEventListener("contextmenu", (e)=> e.preventDefault()); // disable right click
+// ✅ Disable right click
+document.addEventListener("contextmenu", (e)=> e.preventDefault());
 
+// ✅ Proctoring events
 document.addEventListener("visibilitychange", () => {
   if(document.hidden) addViolation("TAB_SWITCH", "visibilitychange hidden");
 });
