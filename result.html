@@ -46,58 +46,60 @@
   </div>
 
 <script>
-  const LS_KEY = "neet_cbt_state_v2";
-  function $(id){ return document.getElementById(id); }
-  function safeJsonParse(str){ try { return JSON.parse(str); } catch { return null; } }
+const LS_KEY = "neet_cbt_state_v2";
+function $(id){ return document.getElementById(id); }
+function safeJsonParse(str){ try { return JSON.parse(str); } catch { return null; } }
 
-  const state = safeJsonParse(localStorage.getItem(LS_KEY) || "");
-  const cand = safeJsonParse(localStorage.getItem("neet_candidate") || "");
+const state = safeJsonParse(localStorage.getItem(LS_KEY) || "");
+const cand  = safeJsonParse(localStorage.getItem("neet_candidate") || "");
 
-  if (!state || !state.result) {
-    $("meta").textContent = "No result found. Please start the test again.";
-    $("uploadStatus").innerHTML = "";
+if (!state || !state.result) {
+  $("meta").textContent = "No result found. Please start the test again.";
+  $("uploadStatus").innerHTML = "";
+} else {
+  const cname = cand ? `${cand.id || ""}${cand.name ? " - " + cand.name : ""}` : "Unknown";
+
+  $("meta").textContent =
+    `Candidate: ${cname} | Status: ${state.result.reason} | Submitted: ${state.result.submittedAt} | Violations: ${state.result.violations}`;
+
+  const uploaded = state._uploaded === true;
+  $("uploadStatus").innerHTML =
+    uploaded
+      ? `<span class="badge ok">Uploaded to Google Sheet</span>`
+      : `<span class="badge bad">Upload not confirmed (check internet / Apps Script)</span>`;
+
+  $("correct").textContent = state.result.correct;
+  $("wrong").textContent = state.result.wrong;
+  $("unattempted").textContent = state.result.unattempted;
+  $("marks").textContent = `${state.result.marks} / ${state.result.total}`;
+
+  const shots = state.violationShots || [];
+  const wrap = $("shotsList");
+  wrap.innerHTML = "";
+
+  if (shots.length === 0) {
+    wrap.innerHTML = "<div class='small'>No screenshots captured.</div>";
   } else {
-    const cname = cand ? `${cand.id || ""}${cand.name ? " - " + cand.name : ""}` : "Unknown";
-    $("meta").textContent =
-      `Candidate: ${cname} | Status: ${state.result.reason} | Submitted: ${state.result.submittedAt} | Violations: ${state.result.violations}`;
-
-    const uploaded = state._uploaded === true;
-    $("uploadStatus").innerHTML =
-      uploaded
-        ? `<span class="badge ok">Uploaded to Google Sheet</span>`
-        : `<span class="badge bad">Upload not confirmed (check internet / Apps Script)</span>`;
-
-    $("correct").textContent = state.result.correct;
-    $("wrong").textContent = state.result.wrong;
-    $("unattempted").textContent = state.result.unattempted;
-    $("marks").textContent = `${state.result.marks} / ${state.result.total}`;
-
-    const shots = state.violationShots || [];
-    const wrap = $("shotsList");
-    wrap.innerHTML = "";
-
-    if (shots.length === 0) {
-      wrap.innerHTML = "<div class='small'>No screenshots captured.</div>";
-    } else {
-      shots.forEach((s, idx) => {
-        const div = document.createElement("div");
-        div.className = "shot";
-        div.innerHTML = `<b>Violation ${idx+1}</b> <div class="small">${s.at}</div><br/>
-                         <img src="${s.dataUrl}" alt="Violation screenshot"/>`;
-        wrap.appendChild(div);
-      });
-    }
+    shots.forEach((s, idx) => {
+      const div = document.createElement("div");
+      div.className = "shot";
+      div.innerHTML = `<b>Violation ${idx+1}</b> <div class="small">${s.at}</div><br/>
+                       <img src="${s.dataUrl}" alt="Violation screenshot"/>`;
+      wrap.appendChild(div);
+    });
   }
+}
 
-  $("restart").addEventListener("click", () => {
-    localStorage.removeItem(LS_KEY);
-    window.location.href = "index.html";
-  });
+$("restart").addEventListener("click", () => {
+  localStorage.removeItem(LS_KEY);
+  window.location.href = "index.html";
+});
 
-  $("logout").addEventListener("click", () => {
-    localStorage.removeItem("neet_candidate");
-    window.location.href = "login.html";
-  });
+$("logout").addEventListener("click", () => {
+  localStorage.removeItem("neet_candidate");
+  localStorage.removeItem(LS_KEY);
+  window.location.href = "login.html";
+});
 </script>
 </body>
 </html>
