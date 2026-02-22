@@ -1,29 +1,42 @@
-function safeParse(s){ try{return JSON.parse(s)}catch{return null} }
+/***********************
+  exam.js (FULLSCREEN REMOVED)
+  ✅ Keeps: tab-switch (visibilitychange) + blur proctoring
+  ❌ Removes: requestFullscreen forcing + fullscreen exit violations + fullscreen interval
+***********************/
 
-const cand = safeParse(localStorage.getItem("neet_candidate")||"");
-if(!cand || !cand.token) location.href = "login.html";
+function safeParse(s){ try{ return JSON.parse(s) }catch{ return null } }
 
-if(localStorage.getItem("neet_submitted")==="yes"){
+// ====== Candidate session ======
+const cand = safeParse(localStorage.getItem("neet_candidate") || "");
+if(!cand || !cand.token){
+  location.href = "login.html";
+}
+
+// If already submitted, go to result
+if(localStorage.getItem("neet_submitted") === "yes"){
   location.href = "result.html";
 }
 
+// ====== Questions ======
 const Q = window.questions || [];
 const totalQ = Q.length;
 
-const elTime = document.getElementById("timeLeft");
-const elVio = document.getElementById("vio");
-const pal = document.getElementById("pal");
-const qTitle = document.getElementById("qTitle");
-const qText = document.getElementById("qText");
-const qImgWrap = document.getElementById("qImgWrap");
-const opts = document.getElementById("opts");
+// ====== Elements ======
+const elTime  = document.getElementById("timeLeft");
+const elVio   = document.getElementById("vio");
+const pal     = document.getElementById("pal");
+const qTitle  = document.getElementById("qTitle");
+const qText   = document.getElementById("qText");
+const qImgWrap= document.getElementById("qImgWrap");
+const opts    = document.getElementById("opts");
 
-const prevBtn = document.getElementById("prevBtn");
-const nextBtn = document.getElementById("nextBtn");
+const prevBtn  = document.getElementById("prevBtn");
+const nextBtn  = document.getElementById("nextBtn");
 const clearBtn = document.getElementById("clearBtn");
-const markBtn = document.getElementById("markBtn");
-const submitBtn = document.getElementById("submitBtn");
+const markBtn  = document.getElementById("markBtn");
+const submitBtn= document.getElementById("submitBtn");
 
+// ====== Storage key ======
 const KEY = "neet_exam_state";
 
 const defaultState = () => ({
@@ -36,7 +49,7 @@ const defaultState = () => ({
 
 let state = safeParse(localStorage.getItem(KEY) || "") || defaultState();
 
-// Ensure duration 60 min
+// Ensure duration 60 min (or from window.EXAM_DURATION_MIN)
 const durationMs = (window.EXAM_DURATION_MIN || 60) * 60 * 1000;
 
 function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
@@ -49,7 +62,7 @@ function updateTimer(){
   const mm = Math.floor(left/60000);
   const ss = Math.floor((left%60000)/1000);
 
-  elTime.textContent = `${pad2(mm)}:${pad2(ss)}`;
+  if (elTime) elTime.textContent = `${pad2(mm)}:${pad2(ss)}`;
 
   if(left <= 0){
     submitExam(true);
@@ -66,6 +79,7 @@ function palClass(qid){
 }
 
 function renderPalette(){
+  if(!pal) return;
   pal.innerHTML = "";
   Q.forEach((q, idx) => {
     const b = document.createElement("button");
@@ -79,131 +93,155 @@ function renderPalette(){
 /* =======================
    ✅ IMAGE MODAL (ZOOM)
 ======================= */
-const imgModal = document.getElementById("imgModal");
+const imgModal    = document.getElementById("imgModal");
 const imgModalPic = document.getElementById("imgModalPic");
 const imgCloseBtn = document.getElementById("imgCloseBtn");
-const imgFullBtn = document.getElementById("imgFullBtn");
+const imgFullBtn  = document.getElementById("imgFullBtn");
 
 function openImgModal(src){
+  if(!imgModal || !imgModalPic) return;
   imgModalPic.src = src;
   imgModal.classList.add("show");
   imgModal.setAttribute("aria-hidden", "false");
 }
 
 function closeImgModal(){
+  if(!imgModal) return;
   imgModal.classList.remove("show");
   imgModal.setAttribute("aria-hidden", "true");
 }
 
-imgCloseBtn.addEventListener("click", closeImgModal);
+if(imgCloseBtn) imgCloseBtn.addEventListener("click", closeImgModal);
 
 // Click outside image closes
-imgModal.addEventListener("click", (e) => {
-  if (e.target === imgModal) closeImgModal();
-});
+if(imgModal){
+  imgModal.addEventListener("click", (e) => {
+    if (e.target === imgModal) closeImgModal();
+  });
+}
 
 // ESC closes
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") closeImgModal();
 });
 
-// Fullscreen (may be blocked on iPhone for <img>, but works on many browsers)
-imgFullBtn.addEventListener("click", async () => {
-  try{
-    if (imgModalPic.requestFullscreen) {
-      await imgModalPic.requestFullscreen();
-    } else if (imgModal.requestFullscreen) {
-      await imgModal.requestFullscreen();
-    } else {
-      alert("Fullscreen not supported on this device/browser.");
+// Image fullscreen button (this is ONLY for the image modal; not exam proctoring)
+if(imgFullBtn){
+  imgFullBtn.addEventListener("click", async () => {
+    try{
+      if (imgModalPic && imgModalPic.requestFullscreen) {
+        await imgModalPic.requestFullscreen();
+      } else if (imgModal && imgModal.requestFullscreen) {
+        await imgModal.requestFullscreen();
+      } else {
+        alert("Fullscreen not supported on this device/browser.");
+      }
+    }catch(err){
+      alert("Fullscreen blocked: " + err.message);
     }
-  }catch(err){
-    alert("Fullscreen blocked: " + err.message);
-  }
-});
+  });
+}
 
 function render(){
   const q = Q[state.current];
+  if(!q) return;
 
-  qTitle.textContent = `Question ${state.current+1} of ${totalQ}`;
-  qText.textContent = q.question;
+  if(qTitle) qTitle.textContent = `Question ${state.current+1} of ${totalQ}`;
+  if(qText)  qText.textContent  = q.question || "";
 
   // ✅ Render image if present (q.image)
-  qImgWrap.innerHTML = "";
-  if (q.image) {
-    qImgWrap.className = "qimg-wrap";
-    const img = document.createElement("img");
-    img.className = "qimg";
-    img.src = q.image;
-    img.alt = "Question image";
-    img.title = "Tap to zoom";
-    img.onclick = () => openImgModal(q.image);
-    qImgWrap.appendChild(img);
-  } else {
-    qImgWrap.className = "";
+  if(qImgWrap){
+    qImgWrap.innerHTML = "";
+    if (q.image) {
+      qImgWrap.className = "qimg-wrap";
+      const img = document.createElement("img");
+      img.className = "qimg";
+      img.src = q.image;
+      img.alt = "Question image";
+      img.title = "Tap to zoom";
+      img.onclick = () => openImgModal(q.image);
+      qImgWrap.appendChild(img);
+    } else {
+      qImgWrap.className = "";
+    }
   }
 
-  opts.innerHTML = "";
-  const selected = state.answers[q.id];
+  // Options
+  if(opts){
+    opts.innerHTML = "";
+    const selected = state.answers[q.id];
 
-  q.options.forEach((text, i) => {
-    const label = document.createElement("label");
-    label.className = "opt";
+    (q.options || []).forEach((text, i) => {
+      const label = document.createElement("label");
+      label.className = "opt";
 
-    const radio = document.createElement("input");
-    radio.type = "radio";
-    radio.name = "opt";
-    radio.checked = (selected === i);
-    radio.onchange = () => {
-      state.answers[q.id] = i;
-      save();
-      renderPalette();
-    };
+      const radio = document.createElement("input");
+      radio.type = "radio";
+      radio.name = "opt";
+      radio.checked = (selected === i);
+      radio.onchange = () => {
+        state.answers[q.id] = i;
+        save();
+        renderPalette();
+      };
 
-    const span = document.createElement("span");
-    span.textContent = text;
+      const span = document.createElement("span");
+      span.textContent = text;
 
-    label.appendChild(radio);
-    label.appendChild(span);
-    opts.appendChild(label);
-  });
+      label.appendChild(radio);
+      label.appendChild(span);
+      opts.appendChild(label);
+    });
+  }
 
-  markBtn.textContent = state.marked[q.id] ? "Unmark Review" : "Mark for Review";
+  if(markBtn) markBtn.textContent = state.marked[q.id] ? "Unmark Review" : "Mark for Review";
 
   renderPalette();
-  elVio.textContent = String(state.violations);
+  if(elVio) elVio.textContent = String(state.violations);
 }
 
-prevBtn.onclick = () => { 
-  if(state.current>0){ 
-    state.current--; 
-    save(); 
-    render(); 
-  } 
-};
+// ====== Navigation buttons ======
+if(prevBtn){
+  prevBtn.onclick = () => {
+    if(state.current > 0){
+      state.current--;
+      save();
+      render();
+    }
+  };
+}
 
-nextBtn.onclick = () => { 
-  if(state.current<totalQ-1){ 
-    state.current++; 
-    save(); 
-    render(); 
-  } 
-};
+if(nextBtn){
+  nextBtn.onclick = () => {
+    if(state.current < totalQ - 1){
+      state.current++;
+      save();
+      render();
+    }
+  };
+}
 
-clearBtn.onclick = () => {
-  const q = Q[state.current];
-  delete state.answers[q.id];
-  save();
-  render();
-};
+if(clearBtn){
+  clearBtn.onclick = () => {
+    const q = Q[state.current];
+    if(!q) return;
+    delete state.answers[q.id];
+    save();
+    render();
+  };
+}
 
-markBtn.onclick = () => {
-  const q = Q[state.current];
-  state.marked[q.id] = !state.marked[q.id];
-  save();
-  render();
-};
+if(markBtn){
+  markBtn.onclick = () => {
+    const q = Q[state.current];
+    if(!q) return;
+    state.marked[q.id] = !state.marked[q.id];
+    save();
+    render();
+  };
+}
 
+// ====== Result calculation ======
 function calcResult(){
   let correct=0, wrong=0, unattempted=0;
   let score=0;
@@ -222,6 +260,7 @@ function calcResult(){
   return {score, correct, wrong, unattempted};
 }
 
+// ====== API ======
 async function api(body){
   const res = await fetch(window.API_URL, {
     method: "POST",
@@ -233,40 +272,41 @@ async function api(body){
 
 async function logViolation(type, details){
   try{
-    await api({ action:"violation", token:cand.token, candidateId:cand.candidateId, type, details });
+    await api({
+      action: "violation",
+      token: cand.token,
+      // supports either cand.candidateId or cand.id depending on your login payload
+      candidateId: (cand.candidateId || cand.id || cand.cid || ""),
+      type,
+      details
+    });
   }catch{}
 }
 
 function addViolation(type, details){
   state.violations++;
   save();
-  elVio.textContent = String(state.violations);
+  if(elVio) elVio.textContent = String(state.violations);
   logViolation(type, details);
-}
-
-function requestFullscreen(){
-  const el = document.documentElement;
-  if(el.requestFullscreen) el.requestFullscreen().catch(()=>{});
 }
 
 // ✅ Disable right click
 document.addEventListener("contextmenu", (e)=> e.preventDefault());
 
-// ✅ Proctoring events
+// ✅ Proctoring events (FULLSCREEN REMOVED)
 document.addEventListener("visibilitychange", () => {
   if(document.hidden) addViolation("TAB_SWITCH", "visibilitychange hidden");
 });
 
 window.addEventListener("blur", () => addViolation("FOCUS_LOST", "window blur"));
 
-document.addEventListener("fullscreenchange", () => {
-  if(!document.fullscreenElement) addViolation("FULLSCREEN_EXIT", "fullscreen exited");
-});
-
-submitBtn.onclick = () => submitExam(false);
+// ====== Submit ======
+if(submitBtn){
+  submitBtn.onclick = () => submitExam(false);
+}
 
 async function submitExam(auto=false){
-  if(localStorage.getItem("neet_submitted")==="yes") return;
+  if(localStorage.getItem("neet_submitted") === "yes") return;
 
   const ok = auto ? true : confirm("Submit exam now?");
   if(!ok) return;
@@ -290,9 +330,9 @@ async function submitExam(auto=false){
 
   try{
     const resp = await api({
-      action:"submit",
+      action: "submit",
       token: cand.token,
-      candidateId: cand.candidateId,
+      candidateId: (cand.candidateId || cand.id || cand.cid || ""),
       payload
     });
 
@@ -309,7 +349,6 @@ async function submitExam(auto=false){
   }
 }
 
-// start
+// ====== Start ======
 render();
 setInterval(updateTimer, 500);
-setInterval(()=>{ try{requestFullscreen();}catch{} }, 15000);
