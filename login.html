@@ -1,137 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>NEET PG CBT - Login</title>
-
   <link rel="stylesheet" href="style.css" />
 </head>
+<body class="center">
+  <div class="card">
+    <h2>NEET PG CBT Login</h2>
 
-<body>
-  <header class="topbar">
-    <div class="brand">NEET PG CBT</div>
-    <div class="meta">
-      <span>Candidate Login</span>
-    </div>
-  </header>
+    <input id="name" placeholder="Full Name" />
+    <input id="phone" placeholder="Phone Number" />
+    <input id="email" placeholder="Email" />
+    <input id="cid" placeholder="Candidate ID" />
+    <input id="pwd" type="password" placeholder="Password" />
 
-  <div class="container">
-    <div class="box">
-      <h2 class="section-title">Candidate Login</h2>
-
-      <div class="grid">
-        <input id="fullName" type="text" placeholder="Full Name" autocomplete="name">
-        <input id="phone" type="text" placeholder="Phone Number" autocomplete="tel">
-        <input id="email" type="email" placeholder="Email" autocomplete="email">
-        <input id="cid" type="text" placeholder="Candidate ID" autocomplete="username">
-        <input id="pwd" type="password" placeholder="Password" class="full" autocomplete="current-password">
-
-        <button id="loginBtn" class="btn full">Login</button>
-      </div>
-
-      <div id="msg" class="msg"></div>
-
-      <div class="small">© 2026 NEET PG CBT | Examination Portal</div>
-    </div>
+    <button id="loginBtn">Login</button>
+    <p id="msg"></p>
   </div>
 
-<script>
-/* =========================
-   LOGIN -> Apps Script -> token saved in localStorage
-   ========================= */
-
-// ✅ Your Apps Script Web App URL (/exec)
-const API_URL = "https://script.google.com/macros/s/AKfycbyrR6uJDuFZBkbrtbjiTuIrKB31alvPWVmz4znmccpqPR_u1TLIqxYfziq9QJObdWBL/exec";
-
-const msg = document.getElementById("msg");
-const loginBtn = document.getElementById("loginBtn");
-
-function setMsg(text, type="warn"){
-  msg.style.display = "block";
-  msg.textContent = text;
-
-  msg.className = "msg";
-  if (type === "ok") msg.classList.add("ok");
-  if (type === "err") msg.classList.add("err");
-}
-
-function safeJsonParse(str){
-  try { return JSON.parse(str); } catch { return null; }
-}
-
-// If already logged in, go to exam
-const existing = safeJsonParse(localStorage.getItem("neet_candidate") || "");
-if (existing && existing.token && existing.id) {
-  window.location.href = "index.html";
-}
-
-async function postApi(payload){
-  // ✅ IMPORTANT: text/plain avoids CORS preflight (works on Safari/iPhone)
-  const res = await fetch(API_URL, {
-    method: "POST",
-    headers: { "Content-Type":"text/plain;charset=utf-8" },
-    body: JSON.stringify(payload)
-  });
-
-  // Apps Script always returns text; parse safely
-  const txt = await res.text();
-  const data = safeJsonParse(txt);
-
-  if (!data) {
-    throw new Error("Invalid JSON from server: " + txt.slice(0, 120));
-  }
-  return data;
-}
-
-document.getElementById("loginBtn").addEventListener("click", async () => {
-  const fullName = document.getElementById("fullName").value.trim();
-  const phone = document.getElementById("phone").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const candidateId = document.getElementById("cid").value.trim();
-  const password = document.getElementById("pwd").value.trim();
-
-  if (!candidateId || !password) return setMsg("Enter Candidate ID and Password.", "err");
-  if (!fullName || !phone || !email) return setMsg("Enter Full Name, Phone, and Email.", "err");
-
-  loginBtn.disabled = true;
-  setMsg("Checking...", "ok");
-
-  try{
-    const data = await postApi({
-      action: "login",
-      candidateId,     // ✅ matches your Apps Script backend
-      password,
-      name: fullName,  // ✅ matches backend (expects body.name)
-      phone,
-      email
-    });
-
-    if (!data.ok) {
-      return setMsg(data.error || "Login failed.", "err");
-    }
-
-    // Save candidate session (keep keys used by your frontend)
-    localStorage.setItem("neet_candidate", JSON.stringify({
-      id: data.candidateId || candidateId,
-      name: data.name || fullName || "Candidate",
-      phone: data.phone || phone || "",
-      email: data.email || email || "",
-      token: data.token,
-      loginTime: Date.now()
-    }));
-
-    setMsg("Login successful. Redirecting...", "ok");
-    window.location.href = "index.html";
-
-  } catch (e){
-    console.error(e);
-    setMsg("Network / API error. Check Web App access = Anyone + use /exec. " + (e.message ? ("(" + e.message + ")") : ""), "err");
-  } finally {
-    loginBtn.disabled = false;
-  }
-});
-</script>
-
+  <script src="config.js"></script>
+  <script src="login.js"></script>
 </body>
 </html>
