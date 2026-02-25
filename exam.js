@@ -1,7 +1,8 @@
 /***********************
-  exam.js (FULLSCREEN REMOVED)
-  ✅ Keeps: tab-switch (visibilitychange) + blur proctoring
-  ❌ Removes: requestFullscreen forcing + fullscreen exit violations + fullscreen interval
+  exam.js
+  ✅ Keeps: tab-switch + blur proctoring
+  ✅ Adds: IST start/end time restriction
+  ✅ Adds: shuffle questions + options (answerIndex fixed)
 ***********************/
 
 function safeParse(s){ try{ return JSON.parse(s) }catch{ return null } }
@@ -9,16 +10,89 @@ function safeParse(s){ try{ return JSON.parse(s) }catch{ return null } }
 // ====== Candidate session ======
 const cand = safeParse(localStorage.getItem("neet_candidate") || "");
 if(!cand || !cand.token){
-  location.href = "login.html";
+  location.replace("login.html");
 }
 
 // If already submitted, go to result
 if(localStorage.getItem("neet_submitted") === "yes"){
-  location.href = "result.html";
+  location.replace("result.html");
 }
 
-// ====== Questions ======
-const Q = window.questions || [];
+// ✅ prevent back navigation during exam
+history.replaceState(null, "", location.href);
+window.addEventListener("popstate", () => {
+  history.pushState(null, "", location.href);
+});
+
+// ====== IST Exam Window (Requires config.js values) ======
+function parseMs(v){
+  const ms = Date.parse(v);
+  return Number.isFinite(ms) ? ms : NaN;
+}
+
+const START_MS = parseMs(window.EXAM_START_IST);
+const END_MS   = parseMs(window.EXAM_END_IST);
+
+function inWindow(now = Date.now()){
+  if(!Number.isFinite(START_MS) || !Number.isFinite(END_MS)) return true; // if not set, allow
+  return now >= START_MS && now <= END_MS;
+}
+
+if(!inWindow()){
+  alert("Exam is not live now (check start/end time).");
+  location.replace("instructions.html");
+}
+
+// ====== Questions (from questions.js) ======
+const RAW = window.questions || [];
+
+// ====== Shuffle helpers (seeded) ======
+function xmur3(str) {
+  let h = 1779033703 ^ str.length;
+  for (let i = 0; i < str.length; i++) {
+    h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+    h = (h << 13) | (h >>> 19);
+  }
+  return function() {
+    h = Math.imul(h ^ (h >>> 16), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    return (h ^= h >>> 16) >>> 0;
+  };
+}
+function mulberry32(a) {
+  return function() {
+    let t = (a += 0x6D2B79F5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function seededShuffle(arr, seedStr) {
+  const seed = xmur3(seedStr)();
+  const rand = mulberry32(seed);
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// ✅ Build runtimeQuestions (shuffled + options shuffled with fixed answerIndex)
+const seedKey = (cand?.candidateId || "guest") + "|" + (cand?.token || "t");
+
+let Q = RAW.map(q => ({ ...q, options: [...(q.options || [])] }));
+
+// Shuffle question order
+Q = seededShuffle(Q, "Q|" + seedKey);
+
+// Shuffle options per question + fix answerIndex
+Q = Q.map((q, idx) => {
+  const correctText = q.options[q.answerIndex];
+  const opt = seededShuffle([...q.options], "O|" + seedKey + "|" + (q.id ?? idx));
+  const newAnswerIndex = opt.indexOf(correctText);
+  return { ...q, options: opt, answerIndex: newAnswerIndex };
+});
+
 const totalQ = Q.length;
 
 // ====== Elements ======
@@ -56,6 +130,12 @@ function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
 function pad2(n){ return String(n).padStart(2,"0"); }
 
 function updateTimer(){
+  // ✅ if exam window ended during attempt -> auto submit
+  if(!inWindow()){
+    submitExam(true, "TIME_WINDOW_ENDED");
+    return;
+  }
+
   const elapsed = Date.now() - state.startedAt;
   const left = Math.max(0, durationMs - elapsed);
 
@@ -65,7 +145,7 @@ function updateTimer(){
   if (elTime) elTime.textContent = `${pad2(mm)}:${pad2(ss)}`;
 
   if(left <= 0){
-    submitExam(true);
+    submitExam(true, "DURATION_ENDED");
   }
 }
 
@@ -113,19 +193,16 @@ function closeImgModal(){
 
 if(imgCloseBtn) imgCloseBtn.addEventListener("click", closeImgModal);
 
-// Click outside image closes
 if(imgModal){
   imgModal.addEventListener("click", (e) => {
     if (e.target === imgModal) closeImgModal();
   });
 }
 
-// ESC closes
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") closeImgModal();
 });
 
-// Image fullscreen button (this is ONLY for the image modal; not exam proctoring)
 if(imgFullBtn){
   imgFullBtn.addEventListener("click", async () => {
     try{
@@ -149,7 +226,6 @@ function render(){
   if(qTitle) qTitle.textContent = `Question ${state.current+1} of ${totalQ}`;
   if(qText)  qText.textContent  = q.question || "";
 
-  // ✅ Render image if present (q.image)
   if(qImgWrap){
     qImgWrap.innerHTML = "";
     if (q.image) {
@@ -166,7 +242,6 @@ function render(){
     }
   }
 
-  // Options
   if(opts){
     opts.innerHTML = "";
     const selected = state.answers[q.id];
@@ -264,7 +339,7 @@ function calcResult(){
 async function api(body){
   const res = await fetch(window.API_URL, {
     method: "POST",
-    headers: { "Content-Type": "text/plain;charset=utf-8" }, // ✅ NO CORS preflight (iPhone fix)
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify(body)
   });
   return await res.json();
@@ -275,7 +350,6 @@ async function logViolation(type, details){
     await api({
       action: "violation",
       token: cand.token,
-      // supports either cand.candidateId or cand.id depending on your login payload
       candidateId: (cand.candidateId || cand.id || cand.cid || ""),
       type,
       details
@@ -293,19 +367,18 @@ function addViolation(type, details){
 // ✅ Disable right click
 document.addEventListener("contextmenu", (e)=> e.preventDefault());
 
-// ✅ Proctoring events (FULLSCREEN REMOVED)
+// ✅ Proctoring events
 document.addEventListener("visibilitychange", () => {
   if(document.hidden) addViolation("TAB_SWITCH", "visibilitychange hidden");
 });
-
 window.addEventListener("blur", () => addViolation("FOCUS_LOST", "window blur"));
 
 // ====== Submit ======
 if(submitBtn){
-  submitBtn.onclick = () => submitExam(false);
+  submitBtn.onclick = () => submitExam(false, "MANUAL");
 }
 
-async function submitExam(auto=false){
+async function submitExam(auto=false, reason=""){
   if(localStorage.getItem("neet_submitted") === "yes") return;
 
   const ok = auto ? true : confirm("Submit exam now?");
@@ -318,6 +391,7 @@ async function submitExam(auto=false){
     name: cand.name,
     phone: cand.phone,
     email: cand.email,
+    candidateId: (cand.candidateId || cand.id || cand.cid || ""),
     score: r.score,
     correct: r.correct,
     wrong: r.wrong,
@@ -325,14 +399,16 @@ async function submitExam(auto=false){
     timeTakenSec: elapsedSec,
     violations: state.violations,
     answers: state.answers,
-    userAgent: navigator.userAgent
+    userAgent: navigator.userAgent,
+    submitReason: reason || (auto ? "AUTO" : "MANUAL"),
+    submittedAtIST: (new Date()).toISOString()
   };
 
   try{
     const resp = await api({
       action: "submit",
       token: cand.token,
-      candidateId: (cand.candidateId || cand.id || cand.cid || ""),
+      candidateId: payload.candidateId,
       payload
     });
 
@@ -343,7 +419,9 @@ async function submitExam(auto=false){
 
     localStorage.setItem("neet_result", JSON.stringify(payload));
     localStorage.setItem("neet_submitted","yes");
-    location.href = "result.html";
+
+    // ✅ replace to prevent back
+    location.replace("result.html");
   }catch(e){
     alert("Network error: " + e.message);
   }
