@@ -1,248 +1,333 @@
 /* =========================
    GLOBAL
 ========================= */
-*{
-  box-sizing: border-box;
-  font-family: Arial, sans-serif;
+*{ box-sizing:border-box; font-family: Arial, sans-serif; }
+:root{
+  --navy:#003366;
+  --navy2:#002244;
+  --bg:#eef2f7;
+  --card:#ffffff;
+  --line:#d6dde7;
 }
 
-body{
-  margin: 0;
-  min-height: 100vh; /* ✅ better than height:100vh on mobile */
+/* =========================
+   LOGIN PAGE (scoped)
+========================= */
+body.login-page{
+  margin:0;
+  min-height:100vh;
   background: linear-gradient(135deg, #dfe9f3, #ffffff);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 18px; /* ✅ space on phone edges */
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:18px;
 }
 
-/* =========================
-   LOGIN CARD
-========================= */
 .login-container{
-  background: #fff;
-  width: min(420px, 100%); /* ✅ responsive width */
-  padding: 32px 26px;
-  border-radius: 12px;
-  box-shadow: 0 10px 28px rgba(0,0,0,0.10);
-  text-align: center;
+  background:#fff;
+  width:min(420px,100%);
+  padding:32px 26px;
+  border-radius:12px;
+  box-shadow:0 10px 28px rgba(0,0,0,0.10);
+  text-align:center;
 }
 
-/* =========================
-   LOGO
-========================= */
 .logo{
-  width: 80px;
-  height: auto;
-  margin-bottom: 10px;
-  /* Optional premium circle (uncomment if you want)
-  height: 80px;
-  object-fit: cover;
-  border-radius: 50%;
-  border: 3px solid #003366;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-  */
+  width:80px;
+  height:auto;
+  margin-bottom:10px;
 }
 
-/* =========================
-   HEADINGS
-========================= */
 .inst-name{
-  margin: 6px 0 2px;
-  font-size: 18px;
-  color: #003366;
-  font-weight: 800;
-  letter-spacing: 0.8px;
+  margin:6px 0 2px;
+  font-size:18px;
+  color:var(--navy);
+  font-weight:800;
+  letter-spacing:.8px;
 }
 
 .title{
-  margin: 10px 0 18px;
-  font-size: 20px;
-  font-weight: 700;
-  color: #111;
+  margin:10px 0 18px;
+  font-size:20px;
+  font-weight:700;
+  color:#111;
 }
 
-/* =========================
-   FORM INPUTS
-========================= */
 .form input{
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 12px;
-  border-radius: 8px;
-  border: 1px solid #cfcfcf;
-  font-size: 15px;
-  transition: 0.25s;
-  background: #fff;
+  width:100%;
+  padding:12px;
+  margin-bottom:12px;
+  border-radius:8px;
+  border:1px solid #cfcfcf;
+  font-size:15px;
+  transition:.25s;
+  background:#fff;
 }
-
 .form input:focus{
-  border-color: #003366;
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(0,51,102,0.15);
+  border-color:var(--navy);
+  outline:none;
+  box-shadow:0 0 0 3px rgba(0,51,102,.15);
 }
 
-/* =========================
-   PASSWORD + TOGGLE
-========================= */
-.password-box{
-  position: relative;
-}
-
+.password-box{ position:relative; }
 .password-box .toggle{
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  user-select: none;
-  font-size: 16px;
-  opacity: 0.9;
+  position:absolute;
+  right:12px;
+  top:50%;
+  transform:translateY(-50%);
+  cursor:pointer;
+  user-select:none;
 }
 
-/* =========================
-   BUTTON
-========================= */
 button{
-  width: 100%;
-  padding: 12px;
-  background: #003366;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 800;
-  cursor: pointer;
-  transition: 0.2s;
+  width:100%;
+  padding:12px;
+  background:var(--navy);
+  color:#fff;
+  border:none;
+  border-radius:8px;
+  font-size:15px;
+  font-weight:800;
+  cursor:pointer;
+  transition:.2s;
 }
+button:hover{ background:var(--navy2); }
 
-button:hover{
-  background: #002244;
+#msg{ margin-top:10px; font-size:13px; color:#c62828; }
+
+@media (max-width:480px){
+  body.login-page{ align-items:flex-start; padding:14px; }
+  .login-container{ margin-top:18px; padding:22px 16px; }
+  .logo{ width:64px; }
+  .inst-name{ font-size:16px; letter-spacing:.5px; }
+  .title{ font-size:16px; }
+  .form input{ font-size:16px; } /* prevent iPhone zoom */
+  button{ font-size:16px; }
 }
 
 /* =========================
-   MESSAGE
+   EXAM PAGE (scoped) - LIKE 2ND IMAGE
 ========================= */
-#msg{
-  margin-top: 10px;
-  font-size: 13px;
-  color: #c62828;
+body.exam-page{
+  margin:0;
+  background:var(--bg);
+}
+
+/* Top bar */
+.topbar{
+  background:var(--navy);
+  color:#fff;
+  padding:10px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.brand{
+  font-weight:800;
+  letter-spacing:.3px;
+}
+
+.meta{
+  font-size:14px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center;
+}
+.meta .sep{ opacity:.6; }
+
+/* Layout */
+.container{
+  display:flex;
+  gap:16px;
+  padding:14px;
+  align-items:flex-start;
+}
+
+.main{
+  flex: 1 1 auto;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:14px;
+}
+
+.palette{
+  width: 330px;             /* ✅ like 2nd image right panel */
+  background: #f7f9fc;
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:14px;
+  position: sticky;          /* ✅ stays visible like CBT */
+  top: 12px;
+  max-height: calc(100vh - 90px);
+  overflow:auto;
+}
+
+.palette h3{
+  margin:0 0 10px;
+  font-size:18px;
+}
+
+/* Question heading / text */
+.qhead h2{
+  margin:0 0 8px;
+  font-size:18px;
+}
+.qtext{
+  background:#f2f5f9;
+  border:1px solid var(--line);
+  padding:10px;
+  border-radius:6px;
+  font-size:14px;
+  line-height:1.4;
+}
+
+/* Question image */
+#qImgWrap img{
+  max-width:100%;
+  border-radius:6px;
+  border:1px solid var(--line);
+  margin:12px 0;
+}
+
+/* Options */
+.opts{
+  margin-top:10px;
+}
+.opts label{
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  padding:10px;
+  border:1px solid var(--line);
+  border-radius:6px;
+  margin-bottom:10px;
+  background:#fff;
+}
+.opts input[type="radio"]{
+  margin-top:3px;
+}
+
+/* Controls row */
+.controls{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:10px;
+}
+.submitRow{
+  margin-top:12px;
+}
+
+/* Buttons (exam) */
+.btn{
+  width:auto;               /* ✅ don’t use login full-width */
+  padding:10px 14px;
+  border-radius:6px;
+  border:none;
+  cursor:pointer;
+  font-weight:700;
+}
+.btn.small{ padding:8px 10px; font-size:13px; }
+.btn.navy{ background:var(--navy); color:#fff; }
+.btn.gray{ background:#607d8b; color:#fff; }
+.btn.amber{ background:#f1c40f; color:#111; }
+.btn.danger{ background:#b00020; color:#fff; }
+
+/* Palette grid (like 2nd image) */
+.pal{
+  display:grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap:10px;
+}
+
+.pal button{
+  width:100%;
+  height:42px;
+  border-radius:8px;
+  border:1px solid #c9d4e3;
+  background:#dfe6ee;
+  color:#111;
+  font-weight:800;
+  cursor:pointer;
+}
+
+/* Current question highlight */
+.pal button.current{
+  outline:3px solid #111;
+  background:#fff;
+}
+
+/* Legend */
+.legend{
+  margin-top:12px;
+  font-size:13px;
+  display:grid;
+  gap:8px;
+}
+.dot{
+  width:12px; height:12px;
+  border-radius:3px;
+  display:inline-block;
+  margin-right:8px;
+  vertical-align:middle;
+  border:1px solid rgba(0,0,0,0.1);
+}
+.dot.unanswered{ background:#cfd8dc; }
+.dot.answered{ background:#2e7d32; }
+.dot.review{ background:#6a1b9a; }
+.dot.ansreview{ background:#1565c0; }
+
+/* Modal (kept) */
+.img-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+.img-modal[aria-hidden="false"]{ display:flex; }
+.img-modal-box{
+  width:min(900px, 92vw);
+  max-height: 90vh;
+  background:#fff;
+  border-radius:10px;
+  overflow:hidden;
+}
+.img-modal-top{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  padding:10px;
+  background:#f2f5f9;
+  border-bottom:1px solid var(--line);
+}
+#imgModalPic{
+  width:100%;
+  height:auto;
+  display:block;
 }
 
 /* =========================
-   MOBILE FIXES
+   MOBILE EXAM (stack like CBT)
 ========================= */
+@media (max-width: 900px){
+  .container{ flex-direction:column; }
+  .palette{
+    position: static;
+    width:100%;
+    max-height:none;
+  }
+  .pal{ grid-template-columns: repeat(5, 1fr); }
+}
+
 @media (max-width: 480px){
-  body{
-    align-items: flex-start;  /* ✅ prevents vertical squeeze */
-    padding: 14px;
-  }
-
-  .login-container{
-    margin-top: 18px;
-    padding: 22px 16px;
-    border-radius: 12px;
-  }
-
-  .logo{
-    width: 64px;
-  }
-
-  .inst-name{
-    font-size: 16px;
-    letter-spacing: 0.5px;
-  }
-
-  .title{
-    font-size: 16px;
-  }
-
-  /* ✅ Prevent iPhone Safari zoom on input focus */
-  .form input{
-    font-size: 16px;
-    padding: 12px;
-  }
-
-  button{
-    font-size: 16px;
-    padding: 12px;
-  }
-}
-
-/* =========================
-   TABLET / DESKTOP TWEAK
-========================= */
-@media (min-width: 768px){
-  .login-container{
-    padding: 35px 30px;
-  }
-}
-
-
-/* =========================
-   EXAM MOBILE PALETTE FIX
-========================= */
-
-.pal-toggle{ display:none; }
-
-.desktop-palette{ display:block; }
-
-.mobile-drawer, .pal-backdrop{ display:none; }
-
-/* Mobile */
-@media (max-width: 768px){
-  .pal-toggle{ display:inline-flex; }
-
-  /* Hide the right palette in layout on mobile */
-  .desktop-palette{ display:none; }
-
-  /* Drawer backdrop */
-  .pal-backdrop{
-    display:block;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.35);
-    opacity: 0;
-    pointer-events: none;
-    transition: 0.2s;
-    z-index: 9998;
-  }
-  .pal-backdrop.open{
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  /* Drawer */
-  .mobile-drawer{
-    display:block;
-    position: fixed;
-    top: 0;
-    right: -360px;
-    width: min(360px, 92vw);
-    height: 100vh;
-    background: #eef2f6;
-    border-left: 1px solid #cfd8dc;
-    padding: 14px;
-    overflow-y: auto;
-    transition: 0.25s;
-    z-index: 9999;
-  }
-  .mobile-drawer.open{
-    right: 0;
-  }
-
-  .drawerTop{
-    display:flex;
-    align-items:center;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 10px;
-  }
-
-  /* Make palette buttons grid on mobile drawer */
-  .mobile-drawer .pal{
-    display:grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 8px;
-  }
+  .topbar{ flex-direction:column; align-items:flex-start; }
+  .meta{ font-size:12px; }
+  .pal{ grid-template-columns: repeat(4, 1fr); }
 }
