@@ -466,7 +466,7 @@ async function submitExam(isAuto=false, reason="SUBMIT"){
   };
 
   // fallback if no API_URL configured
-  const API_URL = window.API_URL || window.EXAM_API_URL || "https://script.google.com/macros/s/AKfycbyrR6uJDuFZBkbrtbjiTuIrKB31alvPWVmz4znmccpqPR_u1TLIqxYfziq9QJObdWBL/exec";
+  const API_URL = window.API_URL || window.EXAM_API_URL || "";
   if(!API_URL){
     alert("API_URL not set in config.js. Cannot submit.");
     submitted = false;
