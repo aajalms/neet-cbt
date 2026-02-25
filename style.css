@@ -177,3 +177,72 @@ button:hover{
     padding: 35px 30px;
   }
 }
+
+
+/* =========================
+   EXAM MOBILE PALETTE FIX
+========================= */
+
+.pal-toggle{ display:none; }
+
+.desktop-palette{ display:block; }
+
+.mobile-drawer, .pal-backdrop{ display:none; }
+
+/* Mobile */
+@media (max-width: 768px){
+  .pal-toggle{ display:inline-flex; }
+
+  /* Hide the right palette in layout on mobile */
+  .desktop-palette{ display:none; }
+
+  /* Drawer backdrop */
+  .pal-backdrop{
+    display:block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.2s;
+    z-index: 9998;
+  }
+  .pal-backdrop.open{
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Drawer */
+  .mobile-drawer{
+    display:block;
+    position: fixed;
+    top: 0;
+    right: -360px;
+    width: min(360px, 92vw);
+    height: 100vh;
+    background: #eef2f6;
+    border-left: 1px solid #cfd8dc;
+    padding: 14px;
+    overflow-y: auto;
+    transition: 0.25s;
+    z-index: 9999;
+  }
+  .mobile-drawer.open{
+    right: 0;
+  }
+
+  .drawerTop{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  /* Make palette buttons grid on mobile drawer */
+  .mobile-drawer .pal{
+    display:grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+  }
+}
