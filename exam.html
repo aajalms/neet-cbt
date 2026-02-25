@@ -6,16 +6,12 @@
   <title>NEET PG CBT - Exam</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+
+<body class="exam-page">
 
   <!-- TOP BAR -->
   <header class="topbar">
     <div class="brand">NEET PG CBT</div>
-
-    <!-- ✅ Mobile palette toggle -->
-    <button id="palToggle" class="btn small navy pal-toggle" type="button">
-      Questions
-    </button>
 
     <div class="meta">
       <span>IST: <b id="istClock">--</b></span>
@@ -54,8 +50,8 @@
       </div>
     </main>
 
-    <!-- RIGHT: PALETTE (Desktop normal) -->
-    <aside class="palette desktop-palette">
+    <!-- RIGHT: PALETTE -->
+    <aside class="palette">
       <h3>Questions</h3>
       <div id="pal" class="pal"></div>
 
@@ -67,25 +63,6 @@
       </div>
     </aside>
   </div>
-
-  <!-- ✅ Mobile Palette Drawer -->
-  <div class="pal-backdrop" id="palBackdrop" aria-hidden="true"></div>
-
-  <aside class="palette mobile-drawer" id="palDrawer" aria-hidden="true">
-    <div class="drawerTop">
-      <h3 style="margin:0;">Questions</h3>
-      <button id="palClose" class="btn small danger" type="button">Close</button>
-    </div>
-
-    <div id="palMobile" class="pal"></div>
-
-    <div class="legend">
-      <div><span class="dot unanswered"></span> Unanswered</div>
-      <div><span class="dot answered"></span> Answered</div>
-      <div><span class="dot review"></span> Marked</div>
-      <div><span class="dot ansreview"></span> Answered + Marked</div>
-    </div>
-  </aside>
 
   <!-- IMAGE MODAL -->
   <div class="img-modal" id="imgModal" aria-hidden="true">
@@ -102,47 +79,5 @@
   <script src="config.js"></script>
   <script src="questions.js"></script>
   <script src="exam.js"></script>
-
-  <!-- ✅ Drawer logic (small, safe) -->
-  <script>
-    (function () {
-      const toggle = document.getElementById("palToggle");
-      const drawer = document.getElementById("palDrawer");
-      const close = document.getElementById("palClose");
-      const backdrop = document.getElementById("palBackdrop");
-
-      // Clone desktop palette buttons into mobile palette container
-      function syncPalette() {
-        const desktopPal = document.getElementById("pal");
-        const mobilePal = document.getElementById("palMobile");
-        if (!desktopPal || !mobilePal) return;
-        mobilePal.innerHTML = desktopPal.innerHTML;
-      }
-
-      function openDrawer() {
-        syncPalette();
-        drawer.classList.add("open");
-        backdrop.classList.add("open");
-        drawer.setAttribute("aria-hidden", "false");
-        backdrop.setAttribute("aria-hidden", "false");
-      }
-
-      function closeDrawer() {
-        drawer.classList.remove("open");
-        backdrop.classList.remove("open");
-        drawer.setAttribute("aria-hidden", "true");
-        backdrop.setAttribute("aria-hidden", "true");
-      }
-
-      if (toggle) toggle.addEventListener("click", openDrawer);
-      if (close) close.addEventListener("click", closeDrawer);
-      if (backdrop) backdrop.addEventListener("click", closeDrawer);
-
-      // Close on ESC (desktop)
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") closeDrawer();
-      });
-    })();
-  </script>
 </body>
 </html>
