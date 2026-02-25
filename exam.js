@@ -1,8 +1,9 @@
 /***********************
   exam.js
-  ✅ Keeps: tab-switch + blur proctoring
-  ✅ Adds: IST start/end time restriction + header display
-  ✅ Adds: shuffle questions + options (answerIndex fixed)
+  ✅ Keeps: tab-switch + blur proctoring, image modal zoom,
+           palette states, save state, submit to Apps Script
+  ✅ Adds: IST header + start/end lock + shuffle questions/options
+  ❌ No forced fullscreen (as you wanted removed)
 ***********************/
 
 function safeParse(s){ try{ return JSON.parse(s) }catch{ return null } }
@@ -49,7 +50,6 @@ if (examEndEl && Number.isFinite(window.EXAM_END_MS) && window.formatIST) {
 
 // ====== Exam Window Lock (IST) ======
 function inWindow(now = Date.now()){
-  // If schedule missing, allow
   if (typeof window.isWithinExamWindow !== "function") return true;
   return window.isWithinExamWindow(now);
 }
@@ -213,19 +213,16 @@ function closeImgModal(){
 
 if(imgCloseBtn) imgCloseBtn.addEventListener("click", closeImgModal);
 
-// Click outside image closes
 if(imgModal){
   imgModal.addEventListener("click", (e) => {
     if (e.target === imgModal) closeImgModal();
   });
 }
 
-// ESC closes
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") closeImgModal();
 });
 
-// Image fullscreen button (ONLY for image modal)
 if(imgFullBtn){
   imgFullBtn.addEventListener("click", async () => {
     try{
@@ -364,7 +361,7 @@ function calcResult(){
 async function api(body){
   const res = await fetch(window.API_URL, {
     method: "POST",
-    headers: { "Content-Type": "text/plain;charset=utf-8" }, // ✅ iPhone no preflight
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify(body)
   });
   return await res.json();
@@ -392,7 +389,7 @@ function addViolation(type, details){
 // ✅ Disable right click
 document.addEventListener("contextmenu", (e)=> e.preventDefault());
 
-// ✅ Proctoring events (fullscreen removed)
+// ✅ Proctoring events
 document.addEventListener("visibilitychange", () => {
   if(document.hidden) addViolation("TAB_SWITCH", "visibilitychange hidden");
 });
@@ -416,6 +413,7 @@ async function submitExam(auto=false, reason=""){
     name: cand.name,
     phone: cand.phone,
     email: cand.email,
+    candidateId: (cand.candidateId || cand.id || cand.cid || ""),
     score: r.score,
     correct: r.correct,
     wrong: r.wrong,
@@ -431,7 +429,7 @@ async function submitExam(auto=false, reason=""){
     const resp = await api({
       action: "submit",
       token: cand.token,
-      candidateId: (cand.candidateId || cand.id || cand.cid || ""),
+      candidateId: payload.candidateId,
       payload
     });
 
@@ -442,7 +440,7 @@ async function submitExam(auto=false, reason=""){
 
     localStorage.setItem("neet_result", JSON.stringify(payload));
     localStorage.setItem("neet_submitted","yes");
-    location.replace("result.html"); // ✅ no back
+    location.replace("result.html");
   }catch(e){
     alert("Network error: " + e.message);
   }
