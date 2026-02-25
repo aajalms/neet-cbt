@@ -12,6 +12,7 @@
     .btn{background:#003366;color:#fff;border:none;padding:12px 18px;border-radius:8px;cursor:pointer;font-weight:700}
     .btn:disabled{opacity:.5;cursor:not-allowed}
     ul{line-height:1.7}
+    #msg{color:#b00020;font-weight:700;margin-top:10px}
   </style>
 </head>
 <body>
@@ -43,14 +44,17 @@
     <button class="btn" id="startBtn" disabled>Start Exam</button>
   </p>
 
-  <p id="msg" style="color:#b00020;font-weight:700;"></p>
+  <p id="msg"></p>
 </div>
 
 <script src="config.js"></script>
 <script>
-  // Must be logged in
+  // ✅ Must be logged in
+  // Your login saves: { token, candidateId, name, phone, email }
   const cand = JSON.parse(localStorage.getItem("neet_candidate") || "null");
-  if (!cand || !cand.id || !cand.token) location.replace("login.html");
+  if (!cand || !cand.token || !cand.candidateId) {
+    location.replace("login.html");
+  }
 
   const istNow = document.getElementById("istNow");
   const startIST = document.getElementById("startIST");
@@ -59,18 +63,32 @@
   const startBtn = document.getElementById("startBtn");
   const msg = document.getElementById("msg");
 
-  startIST.textContent = formatIST(EXAM_START_MS);
-  endIST.textContent = formatIST(EXAM_END_MS);
+  // Show schedule (if configured)
+  if (Number.isFinite(window.EXAM_START_MS) && Number.isFinite(window.EXAM_END_MS)) {
+    startIST.textContent = window.formatIST(window.EXAM_START_MS);
+    endIST.textContent = window.formatIST(window.EXAM_END_MS);
+  } else {
+    startIST.textContent = "Not Set";
+    endIST.textContent = "Not Set";
+  }
 
   function tick(){
-    istNow.textContent = formatIST(Date.now());
+    istNow.textContent = window.formatIST(Date.now());
+
+    // If schedule missing, allow start
+    if (!Number.isFinite(window.EXAM_START_MS) || !Number.isFinite(window.EXAM_END_MS)) {
+      statusTxt.textContent = "Live";
+      startBtn.disabled = false;
+      msg.textContent = "";
+      return;
+    }
 
     const now = Date.now();
-    if (now < EXAM_START_MS){
+    if (now < window.EXAM_START_MS){
       statusTxt.textContent = "Not Started";
       startBtn.disabled = true;
       msg.textContent = "Exam has not started yet.";
-    } else if (now > EXAM_END_MS){
+    } else if (now > window.EXAM_END_MS){
       statusTxt.textContent = "Closed";
       startBtn.disabled = true;
       msg.textContent = "Exam time is over.";
@@ -84,13 +102,23 @@
 
   startBtn.addEventListener("click", ()=>{
     // hard check again
-    if (!isWithinExamWindow()) return;
+    if (!window.isWithinExamWindow()) return;
+
+    // reset any previous exam attempt (optional)
+    localStorage.removeItem("neet_exam_state");
+    localStorage.removeItem("neet_submitted");
+    localStorage.removeItem("neet_result");
+
     // prevent back to instructions after starting
     location.replace("exam.html");
   });
 
-  // prevent back from this page to login after reaching here (optional)
-  history.replaceState(null,"",location.href);
+  // ✅ prevent back from instructions to login
+  history.replaceState(null, "", location.href);
+  window.addEventListener("popstate", () => {
+    history.pushState(null, "", location.href);
+  });
 </script>
+
 </body>
 </html>
