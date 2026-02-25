@@ -1,56 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NEET PG MTS- Login</title>
-
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NEET PG MTS - Login</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<div class="login-container">
+  <div class="login-container">
 
     <!-- Logo -->
-    <img src="IMG_9998.jpeg" class="logo" alt="Institution Logo">
+    <img src="images/IMG_9998.jpeg" class="logo" alt="Institution Logo">
 
     <!-- Institution Name -->
     <h2 class="inst-name">DAMS TRIVANDRUM ~ ZENITH HIGH</h2>
 
     <!-- Title -->
-    <h3 class="title"> NEET PG MTS Login</h3>
+    <h3 class="title">NEET PG MTS Login</h3>
 
     <!-- Form -->
     <div class="form">
+      <input type="text" id="fullName" placeholder="Full Name" autocomplete="name">
+      <input type="tel" id="phone" placeholder="Phone Number" autocomplete="tel">
+      <input type="email" id="email" placeholder="Email" autocomplete="email">
+      <input type="text" id="cid" placeholder="Candidate ID" autocomplete="username">
 
-        <input type="text" id="fullName" placeholder="Full Name">
-        <input type="text" id="phone" placeholder="Phone Number">
-        <input type="email" id="email" placeholder="Email">
-        <input type="text" id="cid" placeholder="Candidate ID">
+      <div class="password-box">
+        <input type="password" id="pwd" placeholder="Password" autocomplete="current-password">
+        <span class="toggle" onclick="togglePassword()">👁</span>
+      </div>
 
-        <div class="password-box">
-            <input type="password" id="pwd" placeholder="Password">
-            <span class="toggle" onclick="togglePassword()">👁</span>
-        </div>
+      <button type="button" onclick="login()">Login</button>
 
-        <button onclick="login()">Login</button>
-
-        <p id="msg"></p>
+      <p id="msg"></p>
     </div>
+  </div>
 
-</div>
-
-<script>
-function togglePassword() {
-    const pwd = document.getElementById("pwd");
-    pwd.type = pwd.type === "password" ? "text" : "password";
-}
-
-function login(){
-    document.getElementById("msg").innerText = "Checking...";
-}
-</script>
+  <!-- ✅ Load config first, then login logic -->
+  <script src="config.js"></script>
+  <script src="login.js"></script>
 
 </body>
 </html>
