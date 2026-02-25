@@ -1,49 +1,58 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>NEET PG CBT - Exam</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+
+  <!-- TOP BAR -->
   <header class="topbar">
-    <div><b>NEET PG CBT</b></div>
-    <div>
-      Time Left: <b id="timeLeft">60:00</b>
-      &nbsp; | &nbsp;
-      Violations: <b id="vio">0</b>
+    <div class="brand">NEET PG CBT</div>
+
+    <div class="meta">
+      <span>IST: <b id="istClock">--</b></span>
+      <span class="sep">|</span>
+      <span>Start: <b id="examStartIST">--</b></span>
+      <span class="sep">|</span>
+      <span>End: <b id="examEndIST">--</b></span>
+      <span class="sep">|</span>
+      <span>Time Left: <b id="timeLeft">60:00</b></span>
+      <span class="sep">|</span>
+      <span>Violations: <b id="vio">0</b></span>
     </div>
   </header>
 
-  <div class="layout">
+  <div class="container">
+    <!-- LEFT: QUESTION AREA -->
     <main class="main">
-      <div class="qbox">
-        <div id="qTitle" class="qtitle"></div>
+      <div class="qhead">
+        <h2 id="qTitle">Question</h2>
+        <div class="qtext" id="qText"></div>
+      </div>
 
-        <div id="qText" class="qtext"></div>
+      <div id="qImgWrap"></div>
 
-        <!-- ✅ Image will be injected here by exam.js -->
-        <div id="qImgWrap"></div>
+      <div class="opts" id="opts"></div>
 
-        <div id="opts" class="opts"></div>
+      <div class="controls">
+        <button id="prevBtn" class="btn navy">Previous</button>
+        <button id="clearBtn" class="btn gray">Clear Response</button>
+        <button id="markBtn" class="btn amber">Mark for Review</button>
+        <button id="nextBtn" class="btn navy">Next</button>
+      </div>
 
-        <div class="actions">
-          <button id="prevBtn">Previous</button>
-          <button id="clearBtn">Clear Response</button>
-          <button id="markBtn">Mark for Review</button>
-          <button id="nextBtn">Next</button>
-        </div>
-
-        <div class="actions">
-          <button class="danger" id="submitBtn">Submit</button>
-        </div>
+      <div class="submitRow">
+        <button id="submitBtn" class="btn danger">Submit</button>
       </div>
     </main>
 
+    <!-- RIGHT: PALETTE -->
     <aside class="palette">
       <h3>Questions</h3>
-      <div id="pal"></div>
+      <div id="pal" class="pal"></div>
 
       <div class="legend">
         <div><span class="dot unanswered"></span> Unanswered</div>
@@ -54,18 +63,18 @@
     </aside>
   </div>
 
-  <!-- ✅ Image Zoom Modal -->
-  <div id="imgModal" class="img-modal" aria-hidden="true">
-    <div class="img-modal-top">
-      <button id="imgFullBtn" class="img-btn">⛶ Fullscreen</button>
-      <button id="imgCloseBtn" class="img-btn danger">✕ Close</button>
-    </div>
-
-    <div class="img-modal-body">
-      <img id="imgModalPic" alt="Question image enlarged" />
+  <!-- IMAGE MODAL -->
+  <div class="img-modal" id="imgModal" aria-hidden="true">
+    <div class="img-modal-box">
+      <div class="img-modal-top">
+        <button id="imgFullBtn" class="btn small">Fullscreen</button>
+        <button id="imgCloseBtn" class="btn small danger">Close</button>
+      </div>
+      <img id="imgModalPic" alt="Zoomed question image" />
     </div>
   </div>
 
+  <!-- Scripts -->
   <script src="config.js"></script>
   <script src="questions.js"></script>
   <script src="exam.js"></script>
