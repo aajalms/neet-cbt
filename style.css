@@ -32,11 +32,7 @@ body.login-page{
   text-align:center;
 }
 
-.logo{
-  width:80px;
-  height:auto;
-  margin-bottom:10px;
-}
+.logo{ width:80px; height:auto; margin-bottom:10px; }
 
 .inst-name{
   margin:6px 0 2px;
@@ -79,7 +75,8 @@ body.login-page{
   user-select:none;
 }
 
-button{
+/* ✅ IMPORTANT: scope login button only to login page */
+body.login-page button{
   width:100%;
   padding:12px;
   background:var(--navy);
@@ -91,7 +88,7 @@ button{
   cursor:pointer;
   transition:.2s;
 }
-button:hover{ background:var(--navy2); }
+body.login-page button:hover{ background:var(--navy2); }
 
 #msg{ margin-top:10px; font-size:13px; color:#c62828; }
 
@@ -102,7 +99,7 @@ button:hover{ background:var(--navy2); }
   .inst-name{ font-size:16px; letter-spacing:.5px; }
   .title{ font-size:16px; }
   .form input{ font-size:16px; } /* prevent iPhone zoom */
-  button{ font-size:16px; }
+  body.login-page button{ font-size:16px; }
 }
 
 /* =========================
@@ -155,12 +152,12 @@ body.exam-page{
 }
 
 .palette{
-  width: 330px;             /* ✅ like 2nd image right panel */
+  width: 330px;
   background: #f7f9fc;
   border:1px solid var(--line);
   border-radius:8px;
   padding:14px;
-  position: sticky;          /* ✅ stays visible like CBT */
+  position: sticky;
   top: 12px;
   max-height: calc(100vh - 90px);
   overflow:auto;
@@ -194,9 +191,7 @@ body.exam-page{
 }
 
 /* Options */
-.opts{
-  margin-top:10px;
-}
+.opts{ margin-top:10px; }
 .opts label{
   display:flex;
   gap:10px;
@@ -207,9 +202,7 @@ body.exam-page{
   margin-bottom:10px;
   background:#fff;
 }
-.opts input[type="radio"]{
-  margin-top:3px;
-}
+.opts input[type="radio"]{ margin-top:3px; }
 
 /* Controls row */
 .controls{
@@ -218,13 +211,11 @@ body.exam-page{
   gap:10px;
   margin-top:10px;
 }
-.submitRow{
-  margin-top:12px;
-}
+.submitRow{ margin-top:12px; }
 
 /* Buttons (exam) */
 .btn{
-  width:auto;               /* ✅ don’t use login full-width */
+  width:auto;
   padding:10px 14px;
   border-radius:6px;
   border:none;
@@ -237,28 +228,39 @@ body.exam-page{
 .btn.amber{ background:#f1c40f; color:#111; }
 .btn.danger{ background:#b00020; color:#fff; }
 
-/* Palette grid (like 2nd image) */
+/* =========================
+   ✅ PALETTE COLORS FIX (IMPORTANT)
+   Your JS uses className: "pbtn unanswered/answered/review/ansreview"
+========================= */
 .pal{
   display:grid;
   grid-template-columns: repeat(6, 1fr);
   gap:10px;
 }
 
+/* base */
 .pal button{
   width:100%;
   height:42px;
   border-radius:8px;
   border:1px solid #c9d4e3;
-  background:#dfe6ee;
-  color:#111;
   font-weight:800;
   cursor:pointer;
+  background:#cfd8dc; /* default */
+  color:#111;
 }
+
+/* ✅ status colors (match exam.js palClass) */
+.pal button.unanswered{ background:#cfd8dc; color:#111; }
+.pal button.answered{ background:#2e7d32; color:#fff; }
+.pal button.review{ background:#6a1b9a; color:#fff; }
+.pal button.ansreview{ background:#1565c0; color:#fff; }
 
 /* Current question highlight */
 .pal button.current{
   outline:3px solid #111;
   background:#fff;
+  color:#111;
 }
 
 /* Legend */
@@ -281,7 +283,9 @@ body.exam-page{
 .dot.review{ background:#6a1b9a; }
 .dot.ansreview{ background:#1565c0; }
 
-/* Modal (kept) */
+/* =========================
+   IMAGE MODAL
+========================= */
 .img-modal{
   position:fixed;
   inset:0;
@@ -292,6 +296,9 @@ body.exam-page{
   z-index:9999;
 }
 .img-modal[aria-hidden="false"]{ display:flex; }
+/* extra safety */
+.img-modal.show{ display:flex; }
+
 .img-modal-box{
   width:min(900px, 92vw);
   max-height: 90vh;
@@ -314,7 +321,7 @@ body.exam-page{
 }
 
 /* =========================
-   MOBILE EXAM (stack like CBT)
+   MOBILE EXAM
 ========================= */
 @media (max-width: 900px){
   .container{ flex-direction:column; }
