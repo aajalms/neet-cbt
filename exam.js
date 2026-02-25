@@ -2,8 +2,7 @@
   exam.js
   ✅ Keeps: tab-switch + blur proctoring, image modal zoom,
            palette states, save state, submit to Apps Script
-  ✅ Adds: IST header + start/end lock + shuffle questions/options
-  ❌ No forced fullscreen (as you wanted removed)
+  ✅ Includes: IST header + start/end lock + shuffle questions/options
 ***********************/
 
 function safeParse(s){ try{ return JSON.parse(s) }catch{ return null } }
@@ -21,9 +20,7 @@ if(localStorage.getItem("neet_submitted") === "yes"){
 
 // ✅ prevent back navigation during exam
 history.replaceState(null, "", location.href);
-window.addEventListener("popstate", () => {
-  history.pushState(null, "", location.href);
-});
+window.addEventListener("popstate", () => history.pushState(null, "", location.href));
 
 // ====== IST Header (clock + schedule) ======
 const istClock = document.getElementById("istClock");
@@ -105,12 +102,12 @@ let Q = RAW.map((q, idx) => ({
 // Shuffle question order
 Q = seededShuffle(Q, "Q|" + seedKey);
 
-// Shuffle options per question + fix answerIndex
+// Shuffle options per question + fix answerIndex (keeps correct answer)
 Q = Q.map((q, idx) => {
-  const correctText = q.options[q.answerIndex];
+  const correctText = (q.correctAnswerText || q.options[q.answerIndex] || "").trim();
   const opt = seededShuffle([...q.options], "O|" + seedKey + "|" + q.id + "|" + idx);
-  const newAnswerIndex = opt.indexOf(correctText);
-  return { ...q, options: opt, answerIndex: newAnswerIndex };
+  const newAnswerIndex = opt.findIndex(x => String(x).trim() === correctText);
+  return { ...q, options: opt, answerIndex: newAnswerIndex >= 0 ? newAnswerIndex : q.answerIndex };
 });
 
 const totalQ = Q.length;
@@ -244,22 +241,20 @@ function render(){
   if(!q) return;
 
   if(qTitle) qTitle.textContent = `Question ${state.current+1} of ${totalQ}`;
-  if(qText)  qText.textContent  = q.question || "";
+
+  // keep line breaks if present
+  if(qText) qText.textContent = q.question || "";
 
   // Render image if present
   if(qImgWrap){
     qImgWrap.innerHTML = "";
     if (q.image) {
-      qImgWrap.className = "qimg-wrap";
       const img = document.createElement("img");
-      img.className = "qimg";
       img.src = q.image;
       img.alt = "Question image";
       img.title = "Tap to zoom";
       img.onclick = () => openImgModal(q.image);
       qImgWrap.appendChild(img);
-    } else {
-      qImgWrap.className = "";
     }
   }
 
@@ -270,7 +265,6 @@ function render(){
 
     (q.options || []).forEach((text, i) => {
       const label = document.createElement("label");
-      label.className = "opt";
 
       const radio = document.createElement("input");
       radio.type = "radio";
@@ -334,7 +328,7 @@ if(markBtn){
     if(!q) return;
     state.marked[q.id] = !state.marked[q.id];
     save();
-    render();
+    render(); // updates palette + button text
   };
 }
 
@@ -346,7 +340,18 @@ function calcResult(){
   for(const q of Q){
     const given = state.answers[q.id];
     if(given === undefined){ unattempted++; continue; }
-    if(given === q.answerIndex){
+
+    // If somehow answerIndex is invalid, fallback via correctAnswerText
+    let correctIdx = q.answerIndex;
+    if (!Number.isInteger(correctIdx) || correctIdx < 0 || correctIdx >= (q.options||[]).length) {
+      const correctText = (q.correctAnswerText || "").trim();
+      if (correctText) {
+        const idx = (q.options||[]).findIndex(x => String(x).trim() === correctText);
+        if (idx >= 0) correctIdx = idx;
+      }
+    }
+
+    if(given === correctIdx){
       correct++;
       score += (window.MARKS_CORRECT ?? 4);
     }else{
@@ -357,14 +362,19 @@ function calcResult(){
   return {score, correct, wrong, unattempted};
 }
 
-// ====== API ======
+// ====== API (robust JSON parsing) ======
 async function api(body){
   const res = await fetch(window.API_URL, {
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify(body)
   });
-  return await res.json();
+
+  const raw = await res.text();
+  const data = safeParse(raw);
+
+  if (!data) return { ok:false, error:"Invalid JSON from server", raw };
+  return data;
 }
 
 async function logViolation(type, details){
