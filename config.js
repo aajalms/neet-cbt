@@ -16,7 +16,7 @@ window.MARKS_WRONG = -1;
 // ==============================
 window.EXAM_TZ = "Asia/Kolkata";
 
-// ✅ Set your fixed window here (IST)
+// ✅ Fixed window (IST)
 window.EXAM_START_IST = "2026-02-25T08:00:00+05:30";
 window.EXAM_END_IST   = "2026-02-26T09:00:00+05:30";
 
@@ -41,7 +41,6 @@ window.formatIST = function formatIST(dateOrMs = Date.now()) {
 
 // ✅ Check if now is within exam window
 window.isWithinExamWindow = function isWithinExamWindow(nowMs = Date.now()) {
-  // If schedule not configured correctly, allow access
   if (!Number.isFinite(window.EXAM_START_MS) || !Number.isFinite(window.EXAM_END_MS)) return true;
   return nowMs >= window.EXAM_START_MS && nowMs <= window.EXAM_END_MS;
 };
