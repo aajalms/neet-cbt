@@ -8,6 +8,8 @@
   ✅ FIX: Result undefined -> compute & send score/correct/wrong/unattempted/timeTakenSec
   ✅ FIX: iPhone Fullscreen overlay should NOT count as violation
   ✅ FIX: Wrong answers marking (MARKS_WRONG = -1 works correctly)
+  ✅ FIX: Login/refresh should NOT reset timer or violations (per-candidate+window key)
+  ✅ REMOVED: Back-button blocking (NO history/popstate code)
 ***********************/
 
 function safeParse(s){ try{ return JSON.parse(s) }catch{ return null } }
@@ -33,9 +35,9 @@ if(localStorage.getItem("neet_submitted") === "yes"){
   location.replace("result.html");
 }
 
-// ✅ prevent back navigation during exam
-history.replaceState(null, "", location.href);
-window.addEventListener("popstate", () => history.pushState(null, "", location.href));
+// ❌ REMOVED: prevent back navigation during exam
+// history.replaceState(null, "", location.href);
+// window.addEventListener("popstate", () => history.pushState(null, "", location.href));
 
 // ====== IST Header (clock + schedule) ======
 const istClock   = document.getElementById("istClock");
@@ -106,7 +108,7 @@ function seededShuffle(arr, seedStr) {
 }
 
 // ✅ Build runtime questions with shuffle (QUESTIONS ONLY)
-const seedKey = (cand?.candidateId || "guest") + "|" + (cand?.token || "t");
+const seedKey = (cand?.candidateId || cand?.id || "guest") + "|" + (cand?.token || "t");
 
 let Q = RAW.map((q, idx) => ({
   ...q,
@@ -134,8 +136,20 @@ const clearBtn  = document.getElementById("clearBtn");
 const markBtn   = document.getElementById("markBtn");
 const submitBtn = document.getElementById("submitBtn");
 
-// ====== Storage key ======
-const KEY = "neet_exam_state";
+// ==============================
+// ✅ STORAGE KEY (FIXED)
+// - Per candidate + per exam window so login/refresh cannot reset attempt
+// - Migrates old global key once (neet_exam_state)
+// ==============================
+function buildStateKey(){
+  const cid = String(cand?.candidateId || cand?.id || "guest");
+  const startMs = Number.isFinite(window.EXAM_START_MS) ? window.EXAM_START_MS : 0;
+  const endMs   = Number.isFinite(window.EXAM_END_MS) ? window.EXAM_END_MS : 0;
+  return `neet_exam_state_${cid}_${startMs}_${endMs}`;
+}
+
+const KEY = buildStateKey();
+const LEGACY_KEY = "neet_exam_state";
 
 const defaultState = () => ({
   startedAt: Date.now(),
@@ -145,8 +159,25 @@ const defaultState = () => ({
   violations: 0
 });
 
-let state = safeParse(localStorage.getItem(KEY) || "") || defaultState();
+// Load state (new key)
+let state = safeParse(localStorage.getItem(KEY) || "");
 
+// One-time migrate if needed
+if(!state){
+  const legacy = safeParse(localStorage.getItem(LEGACY_KEY) || "");
+  if(legacy && typeof legacy === "object" && Number.isFinite(legacy.startedAt)){
+    localStorage.setItem(KEY, JSON.stringify(legacy));
+    state = legacy;
+  }
+}
+
+if(!state) state = defaultState();
+
+// Hardening: never reset these on reload
+if(!Number.isFinite(state.startedAt)) state.startedAt = Date.now();
+if(!Number.isFinite(state.violations)) state.violations = 0;
+if(!state.answers || typeof state.answers !== "object") state.answers = {};
+if(!state.marked  || typeof state.marked  !== "object") state.marked  = {};
 if (!Number.isFinite(state.current) || state.current < 0) state.current = 0;
 if (state.current >= totalQ) state.current = Math.max(0, totalQ - 1);
 
@@ -176,12 +207,9 @@ function calcResult(){
 
   // IMPORTANT: wrong mark should be NEGATIVE (e.g. -1)
   let wrongMark = Number.isFinite(window.MARKS_WRONG) ? Number(window.MARKS_WRONG) : -1;
-  // If someone mistakenly sets +1, convert it to -1 to avoid wrong additions
   if (wrongMark > 0) wrongMark = -wrongMark;
 
-  // ✅ Correct formula
   const score = (correct * plus) + (wrong * wrongMark);
-
   const timeTakenSec = Math.max(0, Math.floor((Date.now() - state.startedAt) / 1000));
 
   return { score, correct, wrong, unattempted, timeTakenSec };
@@ -443,8 +471,7 @@ document.addEventListener("visibilitychange", () => {
 });
 
 window.addEventListener("blur", () => {
-  // ✅ iOS blur is too noisy (fullscreen overlays etc). Skip blur violations on iOS.
-  if(IS_IOS) return;
+  if(IS_IOS) return; // skip noisy iOS blur
   addViolation("WINDOW_BLUR");
 });
 
@@ -540,6 +567,9 @@ async function submitExam(isAuto=false, reason="SUBMIT"){
       timeTakenSec: r.timeTakenSec,
       violations: state.violations || 0
     }));
+
+    // ✅ Clear only after SUCCESS submit
+    try{ localStorage.removeItem(KEY); }catch{}
 
     location.replace("result.html");
 
