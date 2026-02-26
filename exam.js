@@ -2,8 +2,9 @@
   exam.js (COMPLETE + FIXED)
   ✅ Keeps: tab-switch + (optional) blur proctoring, image modal zoom,
            palette states, save state, submit to Apps Script
-  ✅ Includes: IST header + start/end lock + shuffle questions/options
+  ✅ Includes: IST header + start/end lock + shuffle questions ONLY
   ✅ FIX: iOS Safari radio change delay -> palette turns green instantly on tap
+  ✅ FIX: Submit “Network error: Load failed” (CORS preflight) -> use text/plain
 ***********************/
 
 function safeParse(s){ try{ return JSON.parse(s) }catch{ return null } }
@@ -91,7 +92,7 @@ function seededShuffle(arr, seedStr) {
   return arr;
 }
 
-// ✅ Build runtime questions with shuffle
+// ✅ Build runtime questions with shuffle (QUESTIONS ONLY)
 const seedKey = (cand?.candidateId || "guest") + "|" + (cand?.token || "t");
 
 let Q = RAW.map((q, idx) => ({
@@ -100,14 +101,14 @@ let Q = RAW.map((q, idx) => ({
   options: [...(q.options || [])]
 }));
 
-// Shuffle question order
+// Shuffle question order ONLY
 Q = seededShuffle(Q, "Q|" + seedKey);
 
 const totalQ = Q.length;
 
 // ====== Elements ======
 const elTime   = document.getElementById("timeLeft");
-const elVio    = document.getElementById("vio");     // your HTML uses id="vio"
+const elVio    = document.getElementById("vio");
 const pal      = document.getElementById("pal");
 const qTitle   = document.getElementById("qTitle");
 const qText    = document.getElementById("qText");
@@ -126,19 +127,16 @@ const KEY = "neet_exam_state";
 const defaultState = () => ({
   startedAt: Date.now(),
   current: 0,
-  answers: {},     // qid -> optionIndex
-  marked: {},      // qid -> true/false
+  answers: {},
+  marked: {},
   violations: 0
 });
 
 let state = safeParse(localStorage.getItem(KEY) || "") || defaultState();
 
-// If exam window changed / new attempt, keep old startedAt (your choice)
-// But clamp current index
 if (!Number.isFinite(state.current) || state.current < 0) state.current = 0;
 if (state.current >= totalQ) state.current = Math.max(0, totalQ - 1);
 
-// Ensure duration 60 min (or from window.EXAM_DURATION_MIN)
 const durationMs = (window.EXAM_DURATION_MIN || 60) * 60 * 1000;
 
 function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
@@ -149,7 +147,6 @@ let submitted = false;
 function updateTimer(){
   if (submitted) return;
 
-  // ✅ If window ended during exam => auto-submit
   if(!inWindow()){
     submitExam(true, "TIME_WINDOW_ENDED");
     return;
@@ -247,7 +244,6 @@ if(imgFullBtn){
 function setAnswer(qid, idx){
   state.answers[qid] = idx;
   save();
-  // update palette + keep current question visible
   renderPalette();
 }
 
@@ -268,13 +264,9 @@ function render(){
   const q = Q[state.current];
   if(!q) return;
 
-  // title
   if(qTitle) qTitle.textContent = `Question ${state.current+1} of ${totalQ}`;
-
-  // keep line breaks if present
   if(qText) qText.textContent = q.question || "";
 
-  // image
   if(qImgWrap){
     qImgWrap.innerHTML = "";
     if (q.image) {
@@ -287,7 +279,6 @@ function render(){
     }
   }
 
-  // options
   if(opts){
     opts.innerHTML = "";
     const picked = state.answers[q.id];
@@ -306,19 +297,15 @@ function render(){
       span.className = "optText";
       span.textContent = text;
 
-      // ✅ iOS Safari fix: set answer on pointerdown/touchstart too (instant green)
       const choose = (e) => {
-        e.preventDefault(); // prevents double-tap weirdness on iOS
+        e.preventDefault();
         radio.checked = true;
         setAnswer(q.id, i);
-        // after preventDefault, ensure click doesn't get blocked for keyboard users
-        // (no action needed)
       };
 
       row.addEventListener("pointerdown", choose, {passive:false});
       row.addEventListener("touchstart", choose, {passive:false});
       row.addEventListener("click", (e) => {
-        // normal browsers
         if (picked !== i) setAnswer(q.id, i);
       });
 
@@ -328,20 +315,16 @@ function render(){
     });
   }
 
-  // violations display
   if(elVio) elVio.textContent = String(state.violations || 0);
 
-  // buttons state
   if(prevBtn) prevBtn.disabled = state.current <= 0;
   if(nextBtn) nextBtn.disabled = state.current >= totalQ - 1;
 
-  // mark button text (optional)
   if(markBtn){
     const isMarked = !!state.marked[q.id];
     markBtn.textContent = isMarked ? "Unmark" : "Mark for Review";
   }
 
-  // palette
   renderPalette();
 }
 
@@ -371,7 +354,7 @@ if(clearBtn){
     const q = Q[state.current];
     if(!q) return;
     clearAnswer(q.id);
-    render(); // refresh radios
+    render();
   });
 }
 
@@ -380,7 +363,7 @@ if(markBtn){
     const q = Q[state.current];
     if(!q) return;
     toggleMark(q.id);
-    render(); // refresh button label
+    render();
   });
 }
 
@@ -398,14 +381,11 @@ function addViolation(reason){
   save();
   if(elVio) elVio.textContent = String(state.violations);
 
-  // OPTIONAL: if you use blur overlay (set window.PROCTOR_BLUR=true in config)
   if(window.PROCTOR_BLUR === true){
     document.body.classList.add("proctor-blur");
-    // remove blur quickly (you can change time)
     setTimeout(() => document.body.classList.remove("proctor-blur"), 1500);
   }
 
-  // OPTIONAL: auto-submit after X violations
   const maxV = Number.isFinite(window.MAX_VIOLATIONS) ? window.MAX_VIOLATIONS : null;
   if(maxV && state.violations >= maxV){
     submitExam(true, "MAX_VIOLATIONS");
@@ -413,22 +393,46 @@ function addViolation(reason){
 }
 
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "hidden") {
-    addViolation("TAB_SWITCH");
-  }
+  if (document.visibilityState === "hidden") addViolation("TAB_SWITCH");
 });
 
 window.addEventListener("blur", () => {
-  // some browsers fire blur on tab switch too
   addViolation("WINDOW_BLUR");
 });
+
+// ====== Submit helper (NO CORS preflight + timeout) ======
+async function postAPI(payload){
+  const API_URL = window.API_URL || window.EXAM_API_URL || "";
+  if(!API_URL) throw new Error("API_URL not set in config.js");
+
+  const ctrl = new AbortController();
+  const t = setTimeout(()=>ctrl.abort(), 15000);
+
+  try{
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" }, // ✅ IMPORTANT
+      body: JSON.stringify(payload),
+      cache: "no-store",
+      signal: ctrl.signal
+    });
+
+    const txt = await res.text();
+    let data = {};
+    try{ data = JSON.parse(txt); }catch{ data = { ok:false, error:"Bad JSON", raw:txt }; }
+
+    if(!res.ok) throw new Error((data && (data.error||data.message)) || ("HTTP " + res.status));
+    return data;
+  } finally {
+    clearTimeout(t);
+  }
+}
 
 // ====== Submit to Apps Script ======
 async function submitExam(isAuto=false, reason="SUBMIT"){
   if(submitted) return;
   submitted = true;
 
-  // lock UI
   try{
     if(submitBtn) submitBtn.disabled = true;
     if(prevBtn) prevBtn.disabled = true;
@@ -437,66 +441,47 @@ async function submitExam(isAuto=false, reason="SUBMIT"){
     if(markBtn) markBtn.disabled = true;
   }catch{}
 
-  // build payload
+  const candidateId = cand.candidateId || cand.id || "";
+
+  // ✅ Send in backend expected structure: { action, token, candidateId, payload:{...} }
   const payload = {
     action: "submit",
     token: cand.token,
-    candidateId: cand.candidateId || cand.id || "",
-    name: cand.name || "",
-    phone: cand.phone || "",
-    email: cand.email || "",
-    startedAt: state.startedAt,
-    endedAt: Date.now(),
-    durationMin: (window.EXAM_DURATION_MIN || 60),
-    reason,
-    isAuto: !!isAuto,
-    violations: state.violations || 0,
-    answers: state.answers || {},
-    marked: state.marked || {},
-    // optional: store shuffled question ids order
-    qOrder: Q.map(x => x.id)
+    candidateId,
+    payload: {
+      name: cand.name || "",
+      phone: cand.phone || "",
+      email: cand.email || "",
+      startedAt: state.startedAt,
+      endedAt: Date.now(),
+      durationMin: (window.EXAM_DURATION_MIN || 60),
+      reason,
+      isAuto: !!isAuto,
+      violations: state.violations || 0,
+      answers: state.answers || {},
+      marked: state.marked || {},
+      qOrder: Q.map(x => x.id),
+      userAgent: navigator.userAgent || ""
+    }
   };
 
-  // fallback if no API_URL configured
-  const API_URL = window.API_URL || window.EXAM_API_URL || "";
-  if(!API_URL){
-    alert("API_URL not set in config.js. Cannot submit.");
-    submitted = false;
-    return;
-  }
-
   try{
-    const res = await fetch(API_URL, {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify(payload)
-    });
+    const data = await postAPI(payload);
 
-    const data = await res.json().catch(() => ({}));
-
-    if(!res.ok || data.ok === false){
-      const msg = data.message || data.error || ("Submit failed (" + res.status + ")");
-      alert(msg);
+    if(data.ok === false){
+      alert(data.error || data.message || "Submit failed");
       submitted = false;
       return;
     }
 
-    // mark submitted
     localStorage.setItem("neet_submitted", "yes");
-
-    // store result if server returns it (optional)
-    if(data.result){
-      localStorage.setItem("neet_result", JSON.stringify(data.result));
-    } else {
-      // basic local result (optional)
-      localStorage.setItem("neet_result", JSON.stringify({ ok:true, reason, endedAt: payload.endedAt }));
-    }
-
-    // go result
+    localStorage.setItem("neet_result", JSON.stringify(data.result || { ok:true, reason, endedAt: payload.payload.endedAt }));
     location.replace("result.html");
+
   }catch(err){
-    alert("Network error: " + err.message);
+    alert("Network error: " + (err && err.message ? err.message : err));
     submitted = false;
+    try{ if(submitBtn) submitBtn.disabled = false; }catch{}
   }
 }
 
@@ -506,11 +491,7 @@ async function submitExam(isAuto=false, reason="SUBMIT"){
     alert("Questions not loaded. Check questions.js link in exam.html");
     return;
   }
-
-  // update timer immediately + every second
   updateTimer();
   setInterval(updateTimer, 1000);
-
-  // first render
   render();
 })();
