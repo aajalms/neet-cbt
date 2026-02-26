@@ -6,9 +6,20 @@
   ✅ FIX: iOS Safari radio delay -> palette updates instantly
   ✅ FIX: Submit “Network error: Load failed” -> use text/plain (no CORS preflight)
   ✅ FIX: Result undefined -> compute & send score/correct/wrong/unattempted/timeTakenSec
+  ✅ FIX: iPhone Fullscreen overlay should NOT count as violation
 ***********************/
 
 function safeParse(s){ try{ return JSON.parse(s) }catch{ return null } }
+
+// ====== iOS fullscreen/overlay violation suppression ======
+let suppressVioUntil = 0;
+function suppressViolations(ms = 2500){
+  suppressVioUntil = Date.now() + ms;
+}
+function canCountViolation(){
+  return Date.now() > suppressVioUntil;
+}
+const IS_IOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
 // ====== Candidate session ======
 const cand = safeParse(localStorage.getItem("neet_candidate") || "");
@@ -155,7 +166,6 @@ function calcResult(){
       unattempted++;
       continue;
     }
-    // q.answerIndex must exist in questions.js
     if(Number(picked) === Number(q.answerIndex)) correct++;
     else wrong++;
   }
@@ -251,6 +261,7 @@ document.addEventListener("keydown", (e) => {
 
 if(imgFullBtn){
   imgFullBtn.addEventListener("click", async () => {
+    suppressViolations(4000); // ✅ IMPORTANT (do not count fullscreen blur as violation)
     try{
       if (imgModalPic && imgModalPic.requestFullscreen) {
         await imgModalPic.requestFullscreen();
@@ -402,6 +413,8 @@ if(submitBtn){
 
 // ====== Proctoring: tab-switch / blur ======
 function addViolation(reason){
+  if(!canCountViolation()) return; // ✅ ignore during iOS fullscreen/system overlays
+
   state.violations = (state.violations || 0) + 1;
   save();
   if(elVio) elVio.textContent = String(state.violations);
@@ -422,6 +435,8 @@ document.addEventListener("visibilitychange", () => {
 });
 
 window.addEventListener("blur", () => {
+  // ✅ iOS blur is too noisy (fullscreen overlays etc). Skip blur violations on iOS.
+  if(IS_IOS) return;
   addViolation("WINDOW_BLUR");
 });
 
@@ -436,7 +451,7 @@ async function postAPI(payload){
   try{
     const res = await fetch(API_URL, {
       method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" }, // ✅ IMPORTANT
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify(payload),
       cache: "no-store",
       signal: ctrl.signal
@@ -467,9 +482,8 @@ async function submitExam(isAuto=false, reason="SUBMIT"){
   }catch{}
 
   const candidateId = cand.candidateId || cand.id || "";
-  const r = calcResult(); // ✅ compute once
+  const r = calcResult();
 
-  // ✅ Backend expected structure: { action, token, candidateId, payload:{...} }
   const payload = {
     action: "submit",
     token: cand.token,
@@ -507,7 +521,6 @@ async function submitExam(isAuto=false, reason="SUBMIT"){
       return;
     }
 
-    // ✅ Store result locally for result.html
     localStorage.setItem("neet_submitted", "yes");
     localStorage.setItem("neet_result", JSON.stringify({
       name: cand.name || "",
