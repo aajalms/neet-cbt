@@ -3,8 +3,9 @@
   ✅ Keeps: tab-switch + (optional) blur proctoring, image modal zoom,
            palette states, save state, submit to Apps Script
   ✅ Includes: IST header + start/end lock + shuffle questions ONLY
-  ✅ FIX: iOS Safari radio change delay -> palette turns green instantly on tap
-  ✅ FIX: Submit “Network error: Load failed” (CORS preflight) -> use text/plain
+  ✅ FIX: iOS Safari radio delay -> palette updates instantly
+  ✅ FIX: Submit “Network error: Load failed” -> use text/plain (no CORS preflight)
+  ✅ FIX: Result undefined -> compute & send score/correct/wrong/unattempted/timeTakenSec
 ***********************/
 
 function safeParse(s){ try{ return JSON.parse(s) }catch{ return null } }
@@ -127,8 +128,8 @@ const KEY = "neet_exam_state";
 const defaultState = () => ({
   startedAt: Date.now(),
   current: 0,
-  answers: {},
-  marked: {},
+  answers: {},     // qid -> optionIndex
+  marked: {},      // qid -> true/false
   violations: 0
 });
 
@@ -143,6 +144,30 @@ function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
 function pad2(n){ return String(n).padStart(2,"0"); }
 
 let submitted = false;
+
+// ====== Scoring ======
+function calcResult(){
+  let correct = 0, wrong = 0, unattempted = 0;
+
+  for(const q of Q){
+    const picked = state.answers[q.id];
+    if(picked === undefined){
+      unattempted++;
+      continue;
+    }
+    // q.answerIndex must exist in questions.js
+    if(Number(picked) === Number(q.answerIndex)) correct++;
+    else wrong++;
+  }
+
+  const plus = Number.isFinite(window.MARKS_CORRECT) ? window.MARKS_CORRECT : 4;
+  const minus = Number.isFinite(window.MARKS_WRONG) ? window.MARKS_WRONG : 1;
+
+  const score = (correct * plus) - (wrong * minus);
+  const timeTakenSec = Math.max(0, Math.floor((Date.now() - state.startedAt) / 1000));
+
+  return { score, correct, wrong, unattempted, timeTakenSec };
+}
 
 function updateTimer(){
   if (submitted) return;
@@ -305,7 +330,7 @@ function render(){
 
       row.addEventListener("pointerdown", choose, {passive:false});
       row.addEventListener("touchstart", choose, {passive:false});
-      row.addEventListener("click", (e) => {
+      row.addEventListener("click", () => {
         if (picked !== i) setAnswer(q.id, i);
       });
 
@@ -442,8 +467,9 @@ async function submitExam(isAuto=false, reason="SUBMIT"){
   }catch{}
 
   const candidateId = cand.candidateId || cand.id || "";
+  const r = calcResult(); // ✅ compute once
 
-  // ✅ Send in backend expected structure: { action, token, candidateId, payload:{...} }
+  // ✅ Backend expected structure: { action, token, candidateId, payload:{...} }
   const payload = {
     action: "submit",
     token: cand.token,
@@ -452,6 +478,13 @@ async function submitExam(isAuto=false, reason="SUBMIT"){
       name: cand.name || "",
       phone: cand.phone || "",
       email: cand.email || "",
+
+      score: r.score,
+      correct: r.correct,
+      wrong: r.wrong,
+      unattempted: r.unattempted,
+      timeTakenSec: r.timeTakenSec,
+
       startedAt: state.startedAt,
       endedAt: Date.now(),
       durationMin: (window.EXAM_DURATION_MIN || 60),
@@ -474,8 +507,19 @@ async function submitExam(isAuto=false, reason="SUBMIT"){
       return;
     }
 
+    // ✅ Store result locally for result.html
     localStorage.setItem("neet_submitted", "yes");
-    localStorage.setItem("neet_result", JSON.stringify(data.result || { ok:true, reason, endedAt: payload.payload.endedAt }));
+    localStorage.setItem("neet_result", JSON.stringify({
+      name: cand.name || "",
+      candidateId,
+      score: r.score,
+      correct: r.correct,
+      wrong: r.wrong,
+      unattempted: r.unattempted,
+      timeTakenSec: r.timeTakenSec,
+      violations: state.violations || 0
+    }));
+
     location.replace("result.html");
 
   }catch(err){
