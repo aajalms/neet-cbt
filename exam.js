@@ -7,6 +7,7 @@
   ✅ FIX: Submit “Network error: Load failed” -> use text/plain (no CORS preflight)
   ✅ FIX: Result undefined -> compute & send score/correct/wrong/unattempted/timeTakenSec
   ✅ FIX: iPhone Fullscreen overlay should NOT count as violation
+  ✅ FIX: Wrong answers marking (MARKS_WRONG = -1 works correctly)
 ***********************/
 
 function safeParse(s){ try{ return JSON.parse(s) }catch{ return null } }
@@ -156,7 +157,7 @@ function pad2(n){ return String(n).padStart(2,"0"); }
 
 let submitted = false;
 
-// ====== Scoring ======
+// ====== Scoring (✅ FIXED) ======
 function calcResult(){
   let correct = 0, wrong = 0, unattempted = 0;
 
@@ -170,10 +171,17 @@ function calcResult(){
     else wrong++;
   }
 
-  const plus = Number.isFinite(window.MARKS_CORRECT) ? window.MARKS_CORRECT : 4;
-  const minus = Number.isFinite(window.MARKS_WRONG) ? window.MARKS_WRONG : 1;
+  // Defaults: +4, -1
+  const plus = Number.isFinite(window.MARKS_CORRECT) ? Number(window.MARKS_CORRECT) : 4;
 
-  const score = (correct * plus) - (wrong * minus);
+  // IMPORTANT: wrong mark should be NEGATIVE (e.g. -1)
+  let wrongMark = Number.isFinite(window.MARKS_WRONG) ? Number(window.MARKS_WRONG) : -1;
+  // If someone mistakenly sets +1, convert it to -1 to avoid wrong additions
+  if (wrongMark > 0) wrongMark = -wrongMark;
+
+  // ✅ Correct formula
+  const score = (correct * plus) + (wrong * wrongMark);
+
   const timeTakenSec = Math.max(0, Math.floor((Date.now() - state.startedAt) / 1000));
 
   return { score, correct, wrong, unattempted, timeTakenSec };
