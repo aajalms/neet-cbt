@@ -103,14 +103,6 @@ let Q = RAW.map((q, idx) => ({
 // Shuffle question order
 Q = seededShuffle(Q, "Q|" + seedKey);
 
-// Shuffle options per question + fix answerIndex (keeps correct answer)
-Q = Q.map((q, idx) => {
-  const correctText = (q.correctAnswerText || q.options[q.answerIndex] || "").trim();
-  const opt = seededShuffle([...q.options], "O|" + seedKey + "|" + q.id + "|" + idx);
-  const newAnswerIndex = opt.findIndex(x => String(x).trim() === correctText);
-  return { ...q, options: opt, answerIndex: newAnswerIndex >= 0 ? newAnswerIndex : q.answerIndex };
-});
-
 const totalQ = Q.length;
 
 // ====== Elements ======
