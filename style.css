@@ -1,7 +1,13 @@
+Use this complete style.css file. The main fix is that the palette now has its own internal scroll area and a stable grid, so the numbers will appear in proper order instead of looking broken.
+
 /* =========================
    GLOBAL
 ========================= */
-*{ box-sizing:border-box; font-family: Arial, sans-serif; }
+*{
+  box-sizing:border-box;
+  font-family:Arial, sans-serif;
+}
+
 :root{
   --navy:#003366;
   --navy2:#002244;
@@ -10,36 +16,41 @@
   --line:#d6dde7;
 }
 
+html, body{
+  width:100%;
+  overflow-x:hidden;
+}
+
 /* =========================
-   LOGIN PAGE (scoped)
-   ✅ Centered on desktop
-   ✅ Mobile keeps top spacing
+   LOGIN PAGE
 ========================= */
 body.login-page{
   margin:0;
   min-height:100vh;
-  background: linear-gradient(135deg, #dfe9f3, #ffffff);
+  background:linear-gradient(135deg, #dfe9f3, #ffffff);
   display:flex;
   justify-content:center;
   align-items:center;
   padding:18px;
-
-  /* extra desktop centering safety */
   width:100%;
 }
 
 .login-container{
   background:#fff;
   width:100%;
-  max-width:420px;              /* better than min() for wider support */
+  max-width:420px;
   padding:32px 26px;
   border-radius:12px;
   box-shadow:0 10px 28px rgba(0,0,0,0.10);
   text-align:center;
-  margin:0 auto;                /* extra safety */
+  margin:0 auto;
 }
 
-.logo{ width:80px; height:auto; margin-bottom:10px; }
+.logo{
+  width:80px;
+  height:auto;
+  margin-bottom:10px;
+}
 
 .inst-name{
   margin:6px 0 2px;
@@ -66,13 +77,17 @@ body.login-page{
   transition:.25s;
   background:#fff;
 }
+
 .form input:focus{
   border-color:var(--navy);
   outline:none;
   box-shadow:0 0 0 3px rgba(0,51,102,.15);
 }
 
-.password-box{ position:relative; }
+.password-box{
+  position:relative;
+}
+
 .password-box .toggle{
   position:absolute;
   right:12px;
@@ -82,7 +97,6 @@ body.login-page{
   user-select:none;
 }
 
-/* ✅ IMPORTANT: scope login button only to login page */
 body.login-page button{
   width:100%;
   padding:12px;
@@ -95,23 +109,19 @@ body.login-page button{
   cursor:pointer;
   transition:.2s;
 }
-body.login-page button:hover{ background:var(--navy2); }
 
-#msg{ margin-top:10px; font-size:13px; color:#c62828; }
+body.login-page button:hover{
+  background:var(--navy2);
+}
 
-/* Mobile login */
-@media (max-width:480px){
-  body.login-page{ align-items:flex-start; padding:14px; }
-  .login-container{ margin-top:18px; padding:22px 16px; }
-  .logo{ width:64px; }
-  .inst-name{ font-size:16px; letter-spacing:.5px; }
-  .title{ font-size:16px; }
-  .form input{ font-size:16px; } /* prevent iPhone zoom */
-  body.login-page button{ font-size:16px; }
+#msg{
+  margin-top:10px;
+  font-size:13px;
+  color:#c62828;
 }
 
 /* =========================
-   EXAM PAGE (scoped) - LIKE 2ND IMAGE
+   EXAM PAGE
 ========================= */
 body.exam-page{
   margin:0;
@@ -141,7 +151,10 @@ body.exam-page{
   gap:10px;
   align-items:center;
 }
-.meta .sep{ opacity:.6; }
+
+.meta .sep{
+  opacity:.6;
+}
 
 /* Layout */
 .container{
@@ -152,7 +165,8 @@ body.exam-page{
 }
 
 .main{
-  flex: 1 1 auto;
+  flex:1 1 auto;
+  min-width:0;
   background:var(--card);
   border:1px solid var(--line);
   border-radius:8px;
@@ -160,20 +174,24 @@ body.exam-page{
 }
 
 .palette{
-  width: 330px;
-  background: #f7f9fc;
+  width:330px;
+  flex:0 0 330px;
+  background:#f7f9fc;
   border:1px solid var(--line);
   border-radius:8px;
   padding:14px;
-  position: sticky;
-  top: 12px;
-  max-height: calc(100vh - 90px);
-  overflow:auto;
+  position:sticky;
+  top:12px;
+  max-height:calc(100vh - 90px);
+  overflow:hidden; /* important */
+  display:flex;
+  flex-direction:column;
 }
 
 .palette h3{
   margin:0 0 10px;
   font-size:18px;
+  flex:0 0 auto;
 }
 
 /* Question heading / text */
@@ -181,6 +199,7 @@ body.exam-page{
   margin:0 0 8px;
   font-size:18px;
 }
+
 .qtext{
   background:#f2f5f9;
   border:1px solid var(--line);
@@ -188,14 +207,19 @@ body.exam-page{
   border-radius:6px;
   font-size:14px;
   line-height:1.4;
-
-  /* keep line breaks from JS textContent + \n */
   white-space:pre-wrap;
+  word-break:break-word;
 }
 
 /* Question image */
+#qImgWrap{
+  margin-top:12px;
+}
+
 #qImgWrap img{
   max-width:100%;
+  height:auto;
+  display:block;
   border-radius:6px;
   border:1px solid var(--line);
   margin:12px 0;
@@ -203,7 +227,10 @@ body.exam-page{
 }
 
 /* Options */
-.opts{ margin-top:10px; }
+.opts{
+  margin-top:10px;
+}
+
 .opts label{
   display:flex;
   gap:10px;
@@ -215,11 +242,16 @@ body.exam-page{
   background:#fff;
   cursor:pointer;
 }
+
 .opts label:hover{
   border-color:#b6c4d6;
   background:#fbfdff;
 }
-.opts input[type="radio"]{ margin-top:3px; }
+
+.opts input[type="radio"]{
+  margin-top:3px;
+  flex:0 0 auto;
+}
 
 /* Controls row */
 .controls{
@@ -228,9 +260,12 @@ body.exam-page{
   gap:10px;
   margin-top:10px;
 }
-.submitRow{ margin-top:12px; }
 
-/* Buttons (exam) */
+.submitRow{
+  margin-top:12px;
+}
+
+/* Buttons */
 .btn{
   width:auto;
   padding:10px 14px;
@@ -239,11 +274,31 @@ body.exam-page{
   cursor:pointer;
   font-weight:700;
 }
-.btn.small{ padding:8px 10px; font-size:13px; }
-.btn.navy{ background:var(--navy); color:#fff; }
-.btn.gray{ background:#607d8b; color:#fff; }
-.btn.amber{ background:#f1c40f; color:#111; }
-.btn.danger{ background:#b00020; color:#fff; }
+
+.btn.small{
+  padding:8px 10px;
+  font-size:13px;
+}
+
+.btn.navy{
+  background:var(--navy);
+  color:#fff;
+}
+
+.btn.gray{
+  background:#607d8b;
+  color:#fff;
+}
+
+.btn.amber{
+  background:#f1c40f;
+  color:#111;
+}
+
+.btn.danger{
+  background:#b00020;
+  color:#fff;
+}
 
 .btn:disabled{
   opacity:.6;
@@ -251,49 +306,67 @@ body.exam-page{
 }
 
 /* =========================
-   ✅ PALETTE COLORS FIX (IMPORTANT)
-   JS creates: className = "pbtn unanswered/answered/review/ansreview"
-   So we style BOTH:
-   - .pal button.unanswered (your current)
-   - .pbtn.unanswered (extra safety)
+   QUESTION PALETTE
 ========================= */
 .pal{
+  flex:1 1 auto;
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding-right:4px;
   display:grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns:repeat(4, minmax(48px, 1fr));
   gap:10px;
+  align-content:start;
 }
 
-/* base */
-.pal button{
+.pal button,
+.pbtn{
   width:100%;
-  height:42px;
+  min-width:0;
+  height:44px;
   border-radius:8px;
   border:1px solid #c9d4e3;
   font-weight:800;
+  font-size:14px;
   cursor:pointer;
-  background:#cfd8dc; /* default */
+  background:#cfd8dc;
+  color:#111;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+}
+
+/* Status colors */
+.pal button.unanswered,
+.pbtn.unanswered{
+  background:#cfd8dc;
   color:#111;
 }
 
-/* ✅ status colors (button has classes: pbtn + status) */
-.pal button.unanswered,
-.pbtn.unanswered{ background:#cfd8dc; color:#111; }
-
 .pal button.answered,
-.pbtn.answered{ background:#2e7d32; color:#fff; }
+.pbtn.answered{
+  background:#2e7d32;
+  color:#fff;
+}
 
 .pal button.review,
-.pbtn.review{ background:#6a1b9a; color:#fff; }
+.pbtn.review{
+  background:#6a1b9a;
+  color:#fff;
+}
 
 .pal button.ansreview,
-.pbtn.ansreview{ background:#1565c0; color:#fff; }
+.pbtn.ansreview{
+  background:#1565c0;
+  color:#fff;
+}
 
-/* Current question highlight (button gets class "current") */
+/* Current question highlight */
 .pal button.current,
 .pbtn.current{
   outline:3px solid #111;
-  background:#fff;
-  color:#111;
+  outline-offset:0;
 }
 
 /* Legend */
@@ -302,15 +375,19 @@ body.exam-page{
   font-size:13px;
   display:grid;
   gap:8px;
+  flex:0 0 auto;
 }
+
 .dot{
-  width:12px; height:12px;
+  width:12px;
+  height:12px;
   border-radius:3px;
   display:inline-block;
   margin-right:8px;
   vertical-align:middle;
   border:1px solid rgba(0,0,0,0.1);
 }
+
 .dot.unanswered{ background:#cfd8dc; }
 .dot.answered{ background:#2e7d32; }
 .dot.review{ background:#6a1b9a; }
@@ -328,18 +405,24 @@ body.exam-page{
   justify-content:center;
   z-index:9999;
 }
-.img-modal[aria-hidden="false"]{ display:flex; }
-/* extra safety */
-.img-modal.show{ display:flex; }
+
+.img-modal[aria-hidden="false"]{
+  display:flex;
+}
+
+.img-modal.show{
+  display:flex;
+}
 
 .img-modal-box{
   width:min(900px, 92vw);
-  max-height: 90vh;
+  max-height:90vh;
   background:#fff;
   border-radius:10px;
   overflow:hidden;
   box-shadow:0 20px 60px rgba(0,0,0,0.35);
 }
+
 .img-modal-top{
   display:flex;
   justify-content:flex-end;
@@ -348,6 +431,7 @@ body.exam-page{
   background:#f2f5f9;
   border-bottom:1px solid var(--line);
 }
+
 #imgModalPic{
   width:100%;
   height:auto;
@@ -355,27 +439,106 @@ body.exam-page{
 }
 
 /* =========================
-   OPTIONAL: Proctor blur overlay (only used if JS adds class)
+   OPTIONAL PROCTOR BLUR
 ========================= */
 .proctor-blur{
-  filter: blur(4px);
+  filter:blur(4px);
 }
 
 /* =========================
-   MOBILE EXAM
+   TABLET / MOBILE
 ========================= */
-@media (max-width: 900px){
-  .container{ flex-direction:column; }
+@media (max-width: 1100px){
   .palette{
-    position: static;
-    width:100%;
-    max-height:none;
+    width:290px;
+    flex:0 0 290px;
   }
-  .pal{ grid-template-columns: repeat(5, 1fr); }
+
+  .pal{
+    grid-template-columns:repeat(3, minmax(48px, 1fr));
+  }
+}
+
+@media (max-width: 900px){
+  .container{
+    flex-direction:column;
+  }
+
+  .palette{
+    position:static;
+    width:100%;
+    flex:1 1 auto;
+    max-height:none;
+    overflow:visible;
+  }
+
+  .pal{
+    max-height:none;
+    overflow:visible;
+    grid-template-columns:repeat(5, minmax(48px, 1fr));
+  }
 }
 
 @media (max-width: 480px){
-  .topbar{ flex-direction:column; align-items:flex-start; }
-  .meta{ font-size:12px; }
-  .pal{ grid-template-columns: repeat(4, 1fr); }
+  body.login-page{
+    align-items:flex-start;
+    padding:14px;
+  }
+
+  .login-container{
+    margin-top:18px;
+    padding:22px 16px;
+  }
+
+  .logo{
+    width:64px;
+  }
+
+  .inst-name{
+    font-size:16px;
+    letter-spacing:.5px;
+  }
+
+  .title{
+    font-size:16px;
+  }
+
+  .form input{
+    font-size:16px;
+  }
+
+  body.login-page button{
+    font-size:16px;
+  }
+
+  .topbar{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  .meta{
+    font-size:12px;
+  }
+
+  .pal{
+    grid-template-columns:repeat(4, minmax(48px, 1fr));
+  }
+
+  .controls{
+    gap:8px;
+  }
+
+  .btn{
+    padding:10px 12px;
+  }
 }
+
+The important palette fixes are:
+	•	.palette { overflow:hidden; display:flex; flex-direction:column; }
+	•	.pal { flex:1 1 auto; overflow-y:auto; grid-template-columns:repeat(4, minmax(48px, 1fr)); }
+
+That keeps the question buttons in a proper ordered grid.
+
+Your current page showing 1, 2, 7, 8, 13, 14 happened because the palette area was scrolling strangely inside a sticky box. This file fixes that.
+
+If the palette still looks odd after replacing the CSS, the next thing to check is your JavaScript that creates the palette buttons.
